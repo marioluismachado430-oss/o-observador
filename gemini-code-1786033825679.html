@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>O Observador — Notícias, Cultura e Opinião</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;700;800&family=DM+Sans:ital,wght@0,400;0,500;0,700;1,400&family=IBM+Plex+Mono:wght@400;500&family=Newsreader:ital,opsz,wght@1,6..72,400;1,6..72,600&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      --paper: #f2f4f7;
+      --paper-2: #e7eaf0;
+      --ink: #10141b;
+      --ink-2: #2a313c;
+      --ink-soft: #646d7c;
+      --ink-faint: #9aa2b0;
+      --line: rgba(16,20,27,.10);
+      --line-2: rgba(16,20,27,.18);
+      --accent: #d6223a;
+      --accent-dk: #a8142a;
+
+      --chat-bg: #0c1320;
+      --panel: #141d2c;
+      --panel-2: #202c3e;
+      --in: #1b2738;
+      --out: #27507a;
+      --accent-c: #5fb4f7;
+      --green: #37c98a;
+      --amber: #f5c542;
+      --danger: #e8553f;
+
+      --font-display: 'Bricolage Grotesque', sans-serif;
+      --font-serif: 'Newsreader', serif;
+      --font-mono: 'IBM Plex Mono', monospace;
+      --font-sans: 'DM Sans', sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: var(--paper);
+      color: var(--ink);
+      font-family: var(--font-sans);
+      line-height: 1.5;
+      overflow-x: hidden;
+    }
+
+    /* Topbar & Header */
+    .topbar {
+      background: var(--paper-2);
+      border-bottom: 1px solid var(--line);
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      padding: 6px 16px;
+      display: flex;
+      justify-content: space-between;
+      color: var(--ink-soft);
+    }
+
+    .masthead {
+      text-align: center;
+      padding: 24px 16px 12px;
+      border-bottom: 2px solid var(--ink);
+    }
+    .masthead .eyebrow {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: var(--ink-soft);
+    }
+    .masthead h1 {
+      font-family: var(--font-display);
+      font-size: 3.5rem;
+      font-weight: 800;
+      letter-spacing: -1.5px;
+      margin: 4px 0;
+    }
+    .masthead h1 span.accent {
+      color: var(--accent);
+      text-decoration: underline;
+    }
+
+    /* Navbar */
+    .navbar {
+      position: sticky;
+      top: 0;
+      background: rgba(242, 244, 247, 0.92);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid var(--line);
+      padding: 10px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 10;
+    }
+    .nav-links {
+      display: flex;
+      gap: 16px;
+      list-style: none;
+      font-size: 0.9rem;
+    }
+    .search-box input {
+      font-family: var(--font-mono);
+      padding: 6px 12px;
+      border: 1px solid var(--line-2);
+      border-radius: 4px;
+      background: #fff;
+      font-size: 0.85rem;
+      width: 180px;
+      transition: width 0.3s ease;
+    }
+    .search-box input:focus {
+      outline: none;
+      width: 240px;
+      border-color: var(--accent);
+    }
+
+    /* Layout Conteúdo */
+    .content-grid {
+      max-width: 1200px;
+      margin: 20px auto;
+      padding: 0 16px;
+      display: grid;
+      grid-template-columns: 1.35fr 0.9fr;
+      gap: 24px;
+    }
+    .hero-article {
+      border-right: 1px solid var(--line);
+      padding-right: 24px;
+    }
+    .hero-article h2 {
+      font-family: var(--font-display);
+      font-size: 2.2rem;
+      line-height: 1.15;
+      margin: 8px 0;
+    }
+
+    /* Modal / Bilhete */
+    #bilheteOverlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(16, 20, 27, 0.85);
+      backdrop-filter: blur(6px);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+    }
+    .bilhete-card {
+      background: #fff;
+      border: 2px solid var(--ink);
+      padding: 32px;
+      max-width: 400px;
+      width: 90%;
+      border-radius: 4px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+      position: relative;
+    }
+    .bilhete-card input[type="password"] {
+      width: 100%;
+      padding: 10px;
+      margin: 16px 0;
+      font-family: var(--font-mono);
+      border: 1px solid var(--line-2);
+      border-radius: 4px;
+    }
+    .bilhete-card button {
+      width: 100%;
+      padding: 10px;
+      background: var(--ink);
+      color: #fff;
+      border: none;
+      font-family: var(--font-mono);
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    /* Chat / Canal Cifrado */
+    #canalContainer {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: var(--chat-bg);
+      color: #fff;
+      z-index: 200;
+      flex-direction: column;
+    }
+    .chat-header {
+      background: var(--panel);
+      padding: 12px 20px;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .chat-messages {
+      flex: 1;
+      padding: 20px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .msg-bubble {
+      max-width: 70%;
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      word-break: break-word;
+      position: relative;
+    }
+    .msg-bubble.in {
+      background: var(--in);
+      align-self: flex-start;
+    }
+    .msg-bubble.out {
+      background: var(--out);
+      align-self: flex-end;
+    }
+    .msg-status {
+      font-size: 0.7rem;
+      font-family: var(--font-mono);
+      margin-left: 8px;
+      color: rgba(255,255,255,0.6);
+      float: right;
+      margin-top: 4px;
+    }
+    .msg-status.read {
+      color: var(--accent-c); /* Azul ao ler */
+    }
+
+    /* Barra de Controles do Chat */
+    .chat-input-bar {
+      background: var(--panel);
+      padding: 12px;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      border-top: 1px solid rgba(255,255,255,0.1);
+    }
+    .chat-input-bar input[type="text"] {
+      flex: 1;
+      background: var(--panel-2);
+      border: 1px solid rgba(255,255,255,0.2);
+      color: #fff;
+      padding: 10px;
+      border-radius: 4px;
+    }
+    .action-btn {
+      background: var(--panel-2);
+      color: #fff;
+      border: 1px solid rgba(255,255,255,0.2);
+      padding: 10px 14px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.9rem;
+    }
+    .action-btn.recording {
+      background: var(--danger);
+      animation: pulse 1s infinite;
+    }
+
+    @keyframes pulse {
+      0% { opacity: 1; }
+      50% { opacity: 0.5; }
+      100% { opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="topbar">
+    <span id="liveDate">--</span>
+    <span>Edição Digital Privada</span>
+    <span id="liveClock">00:00:00</span>
+  </div>
+
+  <header class="masthead">
+    <div class="eyebrow">Fundado em 1923</div>
+    <h1>O <span class="accent">Observador</span></h1>
+  </header>
+
+  <nav class="navbar">
+    <ul class="nav-links">
+      <li><a href="#">Geral</a></li>
+      <li><a href="#">Arquivo</a></li>
+    </ul>
+    <div class="search-box">
+      <input type="text" id="acervo" placeholder="Buscar no acervo..." autocomplete="off" />
+    </div>
+  </nav>
+
+  <main class="content-grid">
+    <article class="hero-article">
+      <h2>Notícias e Atualizações em Tempo Real</h2>
+      <p>O portal mantém sua rotina de publicação regular...</p>
+    </article>
+  </main>
+
+  <!-- Modal do Bilhete -->
+  <div id="bilheteOverlay">
+    <div class="bilhete-card">
+      <h3 id="salaTitle">CAMPAINHA RECONHECIDA</h3>
+      <input type="password" id="palavra" placeholder="Palavra da casa (≥4 chars)" />
+      <button id="palavraOk">ENTRAR NO CANAL</button>
+    </div>
+  </div>
+
+  <!-- Estado B: O Canal -->
+  <div id="canalContainer">
+    <div class="chat-header">
+      <strong>Redação — Ponto P2</strong>
+      <button onclick="fecharCanal()" style="background:var(--danger); color:#fff; border:none; padding:4px 8px; border-radius:4px; cursor:pointer;">Sair (ESC x2)</button>
+    </div>
+    <div class="chat-messages" id="chatMsgs"></div>
+    
+    <div class="chat-input-bar">
+      <!-- Upload de arquivo -->
+      <label class="action-btn" title="Anexar Imagem">
+        📷 <input type="file" id="fileInput" accept="image/*" style="display:none;" />
+      </label>
+      
+      <!-- Botão de Gravação de Áudio -->
+      <button class="action-btn" id="micBtn" title="Gravar Áudio">🎙️</button>
+      
+      <input type="text" id="chatInput" placeholder="Escreva sua mensagem..." />
+      <button class="action-btn" id="sendBtn" style="background:var(--accent-c); color:#000; font-weight:600;">Enviar</button>
+    </div>
+  </div>
+
+  <script>
+    let currentSala = 'geral';
+    let derivedKey = null;
+    let ws = null;
+    let mediaRecorder = null;
+    let audioChunks = [];
+
+    // --- RELÓGIO DA FACHADA ---
+    setInterval(() => {
+      document.getElementById('liveClock').innerText = new Date().toLocaleTimeString('pt-BR');
+    }, 1000);
+
+    // --- RECONHECIMENTO DO GATILHO (106230) ---
+    const acervoInput = document.getElementById('acervo');
+    acervoInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        const match = acervoInput.value.trim().match(/^106230(?:\/([A-Za-z0-9_-]{1,24}))?$/);
+        if (match) {
+          currentSala = match[1] || 'geral';
+          document.getElementById('salaTitle').innerText = `SALA: ${currentSala.toUpperCase()}`;
+          document.getElementById('bilheteOverlay').style.display = 'flex';
+          acervoInput.value = '';
+        }
+      }
+    });
+
+    // --- DERIVAÇÃO DE CHAVE DE CRIPTOGRAFIA (PBKDF2) ---
+    async function deriveKey(password) {
+      const enc = new TextEncoder();
+      const keyMaterial = await crypto.subtle.importKey(
+        "raw", enc.encode(password), "PBKDF2", false, ["deriveKey"]
+      );
+      return crypto.subtle.deriveKey(
+        {
+          name: "PBKDF2",
+          salt: enc.encode("o-observador·1923"),
+          iterations: 600000,
+          hash: "SHA-256"
+        },
+        keyMaterial,
+        { name: "AES-GCM", length: 256 },
+        false,
+        ["encrypt", "decrypt"]
+      );
+    }
+
+    document.getElementById('palavraOk').addEventListener('click', async () => {
+      const pass = document.getElementById('palavra').value;
+      if (pass.length < 4) return alert('Insira no mínimo 4 caracteres.');
+      derivedKey = await deriveKey(pass);
+      document.getElementById('bilheteOverlay').style.display = 'none';
+      document.getElementById('canalContainer').style.display = 'flex';
+      conectarWebSocket();
+    });
+
+    // --- CIFRAGEM E DECIFRAGEM AES-GCM ---
+    async function encryptData(payload) {
+      const enc = new TextEncoder();
+      const iv = crypto.getRandomValues(new Uint8Array(12));
+      const ciphertext = await crypto.subtle.encrypt(
+        { name: "AES-GCM", iv },
+        derivedKey,
+        enc.encode(JSON.stringify(payload))
+      );
+      return { iv: Array.from(iv), data: Array.from(new Uint8Array(ciphertext)) };
+    }
+
+    async function decryptData(encObj) {
+      const dec = new TextDecoder();
+      const decrypted = await crypto.subtle.decrypt(
+        { name: "AES-GCM", iv: new Uint8Array(encObj.iv) },
+        derivedKey,
+        new Uint8Array(encObj.data)
+      );
+      return JSON.parse(dec.decode(decrypted));
+    }
+
+    // --- CONEXÃO WEBSOCKET E RECIBO DE LEITURA ---
+    function conectarWebSocket() {
+      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      ws = new WebSocket(`${protocol}//${window.location.host}`);
+
+      ws.onopen = () => {
+        ws.send(JSON.stringify({ tipo: 'join', sala: currentSala }));
+      };
+
+      ws.onmessage = async (event) => {
+        const msg = JSON.parse(event.data);
+
+        // Mensagem Cifrada Recebida
+        if (msg.tipo === 'carta') {
+          try {
+            const conteudo = await decryptData(msg.envelope);
+            renderBubble(conteudo, 'in', msg.id);
+            
+            // Envia o recibo de leitura de volta ao servidor (✓✓ Azul)
+            ws.send(JSON.stringify({ tipo: 'recibo', id: msg.id, sala: currentSala }));
+          } catch {
+            console.error('Falha ao decifrar envelope.');
+          }
+        }
+
+        // Atualização do Recibo de Leitura (Sua mensagem foi lida pelo par)
+        if (msg.tipo === 'lido') {
+          const statusElem = document.getElementById(`status-${msg.id}`);
+          if (statusElem) {
+            statusElem.innerText = '✓✓';
+            statusElem.classList.add('read'); // Aplica cor azul
+          }
+        }
+      };
+    }
+
+    // --- RENDERIZAÇÃO DE BOLHAS NA TELA ---
+    function renderBubble(conteudo, direcao, id) {
+      const div = document.createElement('div');
+      div.className = `msg-bubble ${direcao}`;
+      
+      if (conteudo.tipo === 'texto') {
+        div.innerText = conteudo.valor;
+      } else if (conteudo.tipo === 'imagem') {
+        const img = document.createElement('img');
+        img.src = conteudo.valor;
+        img.style.maxWidth = '100%';
+        img.style.borderRadius = '4px';
+        div.appendChild(img);
+      } else if (conteudo.tipo === 'audio') {
+        const audio = document.createElement('audio');
+        audio.controls = true;
+        audio.src = conteudo.valor;
+        div.appendChild(audio);
+      }
+
+      // Adiciona o indicador de recibo (apenas para mensagens enviadas por nós)
+      if (direcao === 'out') {
+        const statusSpan = document.createElement('span');
+        statusSpan.className = 'msg-status';
+        statusSpan.id = `status-${id}`;
+        statusSpan.innerText = '✓'; // Inicialmente enviado
+        div.appendChild(statusSpan);
+      }
+
+      document.getElementById('chatMsgs').appendChild(div);
+      document.getElementById('chatMsgs').scrollTop = document.getElementById('chatMsgs').scrollHeight;
+    }
+
+    // --- ENVIO DE TEXTO ---
+    async function enviarPayload(payload) {
+      const msgId = Date.now().toString();
+      renderBubble(payload, 'out', msgId);
+      const envelope = await encryptData(payload);
+
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({ tipo: 'carta', sala: currentSala, id: msgId, envelope }));
+      }
+    }
+
+    document.getElementById('sendBtn').onclick = () => {
+      const input = document.getElementById('chatInput');
+      if (!input.value.trim()) return;
+      enviarPayload({ tipo: 'texto', valor: input.value });
+      input.value = '';
+    };
+
+    // --- GRAVAÇÃO DE ÁUDIO (MediaRecorder) ---
+    const micBtn = document.getElementById('micBtn');
+    micBtn.onclick = async () => {
+      if (!mediaRecorder || mediaRecorder.state === 'inactive') {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        mediaRecorder = new MediaRecorder(stream);
+        audioChunks = [];
+
+        mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+        mediaRecorder.onstop = async () => {
+          const blob = new Blob(audioChunks, { type: 'audio/webm' });
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            enviarPayload({ tipo: 'audio', valor: reader.result });
+          };
+          reader.readAsDataURL(blob);
+        };
+
+        mediaRecorder.start();
+        micBtn.classList.add('recording');
+      } else {
+        mediaRecorder.stop();
+        micBtn.classList.remove('recording');
+      }
+    };
+
+    // --- UPLOAD DE IMAGEM ---
+    document.getElementById('fileInput').onchange = (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        enviarPayload({ tipo: 'imagem', valor: reader.result });
+      };
+      reader.readAsDataURL(file);
+    };
+
+    function fecharCanal() {
+      document.getElementById('canalContainer').style.display = 'none';
+      derivedKey = null;
+      if (ws) ws.close();
+    }
+  </script>
+</body>
+</html>
