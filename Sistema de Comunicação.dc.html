@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="_ds/industry-84da9ce1-32f2-4b89-85a9-bde664f8e817/styles.css">
+<script src="_ds/industry-84da9ce1-32f2-4b89-85a9-bde664f8e817/_ds_bundle.js"></script>
+<style>
+html,body{height:100%;margin:0}
+.app-shell{height:100vh;width:100%;overflow:hidden;background:var(--color-bg);color:var(--color-text);font-family:var(--font-body);display:grid;grid-template-columns:76px 1fr;grid-template-rows:1fr}
+.rail{grid-row:1;grid-column:1;display:flex;flex-direction:column;align-items:center;border-right:1px solid var(--color-divider);padding:20px 0;gap:6px}
+.rail-brand{width:36px;height:36px;border:1px solid var(--color-divider);display:flex;align-items:center;justify-content:center;margin-bottom:22px;font-family:var(--font-heading);font-weight:600;font-size:16px}
+.rail-btn{position:relative;width:48px;height:48px;display:flex;align-items:center;justify-content:center;border:1px solid transparent;background:transparent;color:color-mix(in srgb, var(--color-text) 55%, transparent);cursor:pointer}
+.rail-btn:hover{background:color-mix(in srgb, var(--color-text) 6%, transparent)}
+.rail-btn[data-active="true"]{color:var(--color-accent-700);border-color:var(--color-divider)}
+.rail-btn:focus-visible{outline:2px solid var(--color-accent);outline-offset:2px}
+.rail-badge{position:absolute;top:5px;right:5px;min-width:15px;height:15px;padding:0 3px;border-radius:8px;background:var(--color-accent-700);color:var(--color-bg);font-size:9px;font-weight:600;display:flex;align-items:center;justify-content:center;font-family:var(--font-body)}
+.rail-spacer{flex:1}
+.rail-avatar{width:36px;height:36px;border:1px solid var(--color-divider);display:flex;align-items:center;justify-content:center;font-family:var(--font-heading);font-size:13px}
+.bottom-tabs{display:none}
+.main{grid-row:1;grid-column:2;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+.topbar{display:flex;align-items:center;gap:12px;padding:14px 24px;border-bottom:1px solid var(--color-divider);flex:none}
+.topbar .btn{white-space:nowrap;flex:none}
+.contact-avatar{width:40px;height:40px;flex:none;border:1px solid var(--color-divider);display:flex;align-items:center;justify-content:center;font-family:var(--font-heading);font-size:15px;position:relative}
+.presence-dot{position:absolute;bottom:-2px;right:-2px;width:11px;height:11px;border-radius:50%;border:2px solid var(--color-bg)}
+.presence-dot[data-status="online"]{background:var(--color-accent)}
+.presence-dot[data-status="away"]{background:var(--color-neutral-500)}
+.presence-dot[data-status="offline"]{background:var(--color-neutral-300)}
+.contact-meta{flex:1;min-width:0}
+.contact-meta .name{font-family:var(--font-heading);font-weight:600;font-size:16px}
+.contact-meta .sub{font-size:12px;opacity:.6}
+.view{flex:1;overflow:hidden;display:flex;flex-direction:column;width:100%}
+.thread-panel{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+.messages{flex:1;overflow-y:auto;padding:24px;display:flex;flex-direction:column;gap:10px}
+.msg{max-width:58%;padding:9px 13px;border:1px solid var(--color-divider);font-size:14px;line-height:1.45}
+.msg[data-mine="true"]{align-self:flex-end;background:var(--color-accent-100);border-color:var(--color-accent-300)}
+.msg[data-mine="false"]{align-self:flex-start;background:var(--color-surface)}
+.msg time{display:block;margin-top:4px;font-size:10px;opacity:.55;font-family:var(--font-body)}
+.composer{display:flex;gap:10px;padding:14px 20px;border-top:1px solid var(--color-divider);flex:none}
+.call-view{flex:1;display:flex;flex-direction:column;background:var(--color-surface);width:100%}
+.call-stage{flex:1;display:grid;gap:14px;padding:24px;grid-template-columns:1fr 1fr;align-content:center}
+.call-tile{position:relative;aspect-ratio:4/3;border:1px solid var(--color-divider);display:flex;align-items:center;justify-content:center;background:var(--color-bg)}
+.call-tile-name{position:absolute;bottom:8px;left:8px;right:8px;font-size:12px;background:color-mix(in srgb, var(--color-bg) 85%, transparent);padding:2px 7px;border:1px solid var(--color-divider);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.call-tile-mute{position:absolute;top:8px;right:8px;width:24px;height:24px;display:flex;align-items:center;justify-content:center;background:var(--color-neutral-900);color:var(--color-bg)}
+.call-controls{display:flex;justify-content:center;gap:12px;padding:20px;border-top:1px solid var(--color-divider)}
+.ctrl-btn{width:48px;height:48px;border:1px solid var(--color-divider);background:transparent;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--color-text)}
+.ctrl-btn:hover{background:color-mix(in srgb, var(--color-text) 6%, transparent)}
+.ctrl-btn[data-off="true"]{background:var(--color-neutral-900);color:var(--color-bg);border-color:var(--color-neutral-900)}
+.ctrl-end{background:var(--color-neutral-900);color:var(--color-bg);border-color:var(--color-neutral-900)}
+.ctrl-end:hover{background:var(--color-neutral-800)}
+.alerts-list{flex:1;overflow-y:auto;padding:4px 24px;width:100%}
+.alert-row{display:flex;gap:14px;align-items:flex-start;padding:16px 0;border-bottom:1px solid var(--color-divider);cursor:pointer}
+.alert-row:hover{background:color-mix(in srgb, var(--color-text) 3%, transparent)}
+.alert-icon{width:34px;height:34px;flex:none;border:1px solid var(--color-divider);display:flex;align-items:center;justify-content:center;color:var(--color-accent-700)}
+.alert-dot{width:8px;height:8px;border-radius:50%;background:var(--color-accent);flex:none;margin-top:6px}
+.act-btn{width:36px;height:36px;border:1px solid var(--color-divider);background:transparent;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--color-text)}
+.act-btn:hover{background:color-mix(in srgb, var(--color-text) 6%, transparent)}
+@media (max-width:880px){
+  .app-shell{grid-template-columns:1fr;grid-template-rows:1fr auto}
+  .rail{display:none}
+  .bottom-tabs{display:flex;grid-row:2;grid-column:1;border-top:1px solid var(--color-divider);justify-content:space-around;padding:6px 0}
+  .main{grid-row:1;grid-column:1}
+  .msg{max-width:82%}
+}
+.tab-btn{position:relative;display:flex;flex-direction:column;align-items:center;gap:2px;background:none;border:none;padding:4px 14px;font-size:10px;font-family:var(--font-body);color:color-mix(in srgb, var(--color-text) 55%, transparent);cursor:pointer}
+.tab-btn[data-active="true"]{color:var(--color-accent-700)}
+.tab-badge{position:absolute;top:-2px;right:2px;min-width:14px;height:14px;padding:0 3px;border-radius:8px;background:var(--color-accent-700);color:var(--color-bg);font-size:9px;display:flex;align-items:center;justify-content:center}
+a{color:var(--color-accent-700)}
+a:hover{color:var(--color-accent-900)}
+</style>
+</helmet>
+<div class="app-shell">
+  <nav class="rail">
+    <div class="rail-brand" title="Canal">C</div>
+    <button type="button" class="rail-btn" data-active="{{ isMensagens }}" onClick="{{ goMensagens }}" aria-label="Conversa">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+    </button>
+    <button type="button" class="rail-btn" data-active="{{ isChamada }}" onClick="{{ goChamada }}" aria-label="Chamada">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M13.83 16.57a1 1 0 0 0 1.21-.3l.36-.47A2 2 0 0 1 17 15h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2A18 18 0 0 1 2 4a2 2 0 0 1 2-2h3a2 2 0 0 1 2 2v3a2 2 0 0 1-.8 1.6l-.47.35a1 1 0 0 0-.29 1.23 14 14 0 0 0 6.39 6.39"></path></svg>
+    </button>
+    <button type="button" class="rail-btn" data-active="{{ isAlertas }}" onClick="{{ goAlertas }}" aria-label="Notificações">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"></path><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"></path></svg>
+      <sc-if value="{{ hasUnreadNotif }}" hint-placeholder-val="{{ false }}"><span class="rail-badge">{{ unreadCount }}</span></sc-if>
+    </button>
+    <div class="rail-spacer"></div>
+    <div class="rail-avatar" title="Você">VC</div>
+  </nav>
+
+  <main class="main">
+    <div class="topbar">
+      <div class="contact-avatar">{{ contact.initials }}<span class="presence-dot" data-status="{{ contact.status }}"></span></div>
+      <div class="contact-meta">
+        <div class="name">{{ contact.name }}</div>
+        <div class="sub">{{ contact.statusLabel }}</div>
+      </div>
+      <button type="button" class="act-btn" onClick="{{ goChamada }}" aria-label="Ligar">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M13.83 16.57a1 1 0 0 0 1.21-.3l.36-.47A2 2 0 0 1 17 15h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2A18 18 0 0 1 2 4a2 2 0 0 1 2-2h3a2 2 0 0 1 2 2v3a2 2 0 0 1-.8 1.6l-.47.35a1 1 0 0 0-.29 1.23 14 14 0 0 0 6.39 6.39"></path></svg>
+      </button>
+      <button type="button" class="act-btn" onClick="{{ goChamada }}" aria-label="Chamada de vídeo">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m16 13 5.22 3.48a.5.5 0 0 0 .78-.42V7.87a.5.5 0 0 0-.78-.42L16 10.9"></path><rect x="2" y="6" width="14" height="12" rx="2"></rect></svg>
+      </button>
+    </div>
+
+    <sc-if value="{{ isMensagens }}" hint-placeholder-val="{{ true }}">
+      <div class="view">
+        <div class="thread-panel">
+          <div class="messages">
+            <sc-for list="{{ messages }}" as="msg" hint-placeholder-count="4">
+              <div class="msg" data-mine="{{ msg.mine }}">
+                {{ msg.text }}
+                <time>{{ msg.time }}</time>
+              </div>
+            </sc-for>
+          </div>
+          <div class="composer">
+            <input class="input" placeholder="Escreva uma mensagem" value="{{ composerText }}" onChange="{{ onComposerChange }}" onKeyDown="{{ onComposerKeyDown }}" />
+            <button type="button" class="btn btn-primary btn-icon" onClick="{{ sendMessage }}" aria-label="Enviar">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4Z"></path><path d="M22 2 11 13"></path></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isChamada }}" hint-placeholder-val="{{ false }}">
+      <div class="view call-view">
+        <div class="call-stage">
+          <div class="call-tile">
+            <div class="contact-avatar" style="width:56px;height:56px;font-size:20px">VC</div>
+            <div class="call-tile-name">Você</div>
+            <sc-if value="{{ isMicOff }}" hint-placeholder-val="{{ false }}">
+              <div class="call-tile-mute">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="2" y1="2" x2="22" y2="22"></line><path d="M9 9v3a3 3 0 0 0 5.12 2.12M15 9.34V5a3 3 0 0 0-5.94-.6"></path><path d="M17 16.95A7 7 0 0 1 5 12v-1"></path><line x1="12" y1="19" x2="12" y2="22"></line></svg>
+              </div>
+            </sc-if>
+          </div>
+          <div class="call-tile">
+            <div class="contact-avatar" style="width:56px;height:56px;font-size:20px">{{ contact.initials }}</div>
+            <div class="call-tile-name">{{ contact.name }}</div>
+          </div>
+        </div>
+        <div class="call-controls">
+          <button type="button" class="ctrl-btn" data-off="{{ isMicOff }}" onClick="{{ toggleMic }}" aria-label="Microfone">
+            <sc-if value="{{ micOn }}" hint-placeholder-val="{{ true }}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"></path><path d="M19 10v1a7 7 0 0 1-14 0v-1"></path><line x1="12" y1="19" x2="12" y2="22"></line></svg></sc-if>
+            <sc-if value="{{ isMicOff }}" hint-placeholder-val="{{ false }}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="2" y1="2" x2="22" y2="22"></line><path d="M9 9v3a3 3 0 0 0 5.12 2.12M15 9.34V5a3 3 0 0 0-5.94-.6"></path><path d="M17 16.95A7 7 0 0 1 5 12v-1"></path><line x1="12" y1="19" x2="12" y2="22"></line></svg></sc-if>
+          </button>
+          <button type="button" class="ctrl-btn" data-off="{{ isCamOff }}" onClick="{{ toggleCam }}" aria-label="Câmera">
+            <sc-if value="{{ camOn }}" hint-placeholder-val="{{ true }}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m16 13 5.22 3.48a.5.5 0 0 0 .78-.42V7.87a.5.5 0 0 0-.78-.42L16 10.9"></path><rect x="2" y="6" width="14" height="12" rx="2"></rect></svg></sc-if>
+            <sc-if value="{{ isCamOff }}" hint-placeholder-val="{{ false }}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.66 6H14a2 2 0 0 1 2 2v2.5l5.25-3.12a.5.5 0 0 1 .75.43v8.36"></path><path d="M16 16a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8a2 2 0 0 1 .69-1.51"></path><line x1="2" y1="2" x2="22" y2="22"></line></svg></sc-if>
+          </button>
+          <button type="button" class="ctrl-btn" data-off="{{ screenOn }}" onClick="{{ toggleScreen }}" aria-label="Compartilhar tela">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
+          </button>
+          <button type="button" class="ctrl-btn ctrl-end" onClick="{{ endCall }}" aria-label="Encerrar chamada">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.68 13.31a16 16 0 0 0 3.41 2.6l1.27-1.27a2 2 0 0 1 2.11-.45 12.3 12.3 0 0 0 3.53.56 2 2 0 0 1 2 2v3.53a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.68A2 2 0 0 1 4.11 2h3.53a2 2 0 0 1 2 1.72 12.3 12.3 0 0 0 .57 3.53 2 2 0 0 1-.45 2.11z"></path><line x1="22" y1="2" x2="2" y2="22"></line></svg>
+          </button>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isAlertas }}" hint-placeholder-val="{{ false }}">
+      <div class="view">
+        <div class="alerts-list">
+          <sc-for list="{{ notifications }}" as="n" hint-placeholder-count="4">
+            <div class="alert-row" onClick="{{ n.onRead }}">
+              <div class="alert-icon">
+                <sc-if value="{{ n.isMessage }}" hint-placeholder-val="{{ false }}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg></sc-if>
+                <sc-if value="{{ n.isCall }}" hint-placeholder-val="{{ false }}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M13.83 16.57a1 1 0 0 0 1.21-.3l.36-.47A2 2 0 0 1 17 15h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2A18 18 0 0 1 2 4a2 2 0 0 1 2-2h3a2 2 0 0 1 2 2v3a2 2 0 0 1-.8 1.6l-.47.35a1 1 0 0 0-.29 1.23 14 14 0 0 0 6.39 6.39"></path></svg></sc-if>
+                <sc-if value="{{ n.isPresence }}" hint-placeholder-val="{{ false }}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M8 12h8"></path></svg></sc-if>
+              </div>
+              <div style="flex:1">
+                <div style="font-size:14px">{{ n.text }}</div>
+                <div style="font-size:11.5px;opacity:.55;margin-top:3px">{{ n.time }}</div>
+              </div>
+              <sc-if value="{{ n.unread }}" hint-placeholder-val="{{ false }}"><span class="alert-dot"></span></sc-if>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </sc-if>
+  </main>
+
+  <nav class="bottom-tabs">
+    <button type="button" class="tab-btn" data-active="{{ isMensagens }}" onClick="{{ goMensagens }}">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+      <span>Conversa</span>
+    </button>
+    <button type="button" class="tab-btn" data-active="{{ isChamada }}" onClick="{{ goChamada }}">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M13.83 16.57a1 1 0 0 0 1.21-.3l.36-.47A2 2 0 0 1 17 15h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2A18 18 0 0 1 2 4a2 2 0 0 1 2-2h3a2 2 0 0 1 2 2v3a2 2 0 0 1-.8 1.6l-.47.35a1 1 0 0 0-.29 1.23 14 14 0 0 0 6.39 6.39"></path></svg>
+      <span>Chamada</span>
+    </button>
+    <button type="button" class="tab-btn" data-active="{{ isAlertas }}" onClick="{{ goAlertas }}">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"></path><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"></path></svg>
+      <span>Alertas</span>
+      <sc-if value="{{ hasUnreadNotif }}" hint-placeholder-val="{{ false }}"><span class="tab-badge">{{ unreadCount }}</span></sc-if>
+    </button>
+  </nav>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = {
+    view: 'mensagens',
+    composerText: '',
+    micOn: true,
+    camOn: true,
+    screenOn: false,
+    contact: { name: 'Marina Alves', initials: 'MA', status: 'online' },
+    messages: [
+      { id: 1, mine: false, text: 'Oi! Vi seu comentário no protótipo, faz sentido.', time: '10:02' },
+      { id: 2, mine: false, text: 'Consegue revisar a versão mobile hoje ainda?', time: '10:03' },
+      { id: 3, mine: true, text: 'Consigo, te retorno até o fim da tarde.', time: '10:05' },
+      { id: 4, mine: false, text: 'Combinado, obrigada!', time: '10:06' }
+    ],
+    notifications: [
+      { id: 'n1', type: 'message', text: 'Marina Alves enviou uma mensagem', time: '2 min atrás', unread: true },
+      { id: 'n2', type: 'call', text: 'Chamada perdida de Marina Alves', time: '1 h atrás', unread: true },
+      { id: 'n3', type: 'presence', text: 'Marina Alves ficou online', time: 'Ontem', unread: false }
+    ]
+  };
+
+  setView = (v) => this.setState({ view: v });
+  onComposerChange = (e) => this.setState({ composerText: e.target.value });
+  onComposerKeyDown = (e) => { if (e.key === 'Enter') this.sendMessage(); };
+  sendMessage = () => {
+    const text = this.state.composerText.trim();
+    if (!text) return;
+    this.setState((s) => ({
+      composerText: '',
+      messages: [...s.messages, { id: s.messages.length + 1, mine: true, text, time: 'Agora' }]
+    }));
+  };
+  toggleMic = () => this.setState((s) => ({ micOn: !s.micOn }));
+  toggleCam = () => this.setState((s) => ({ camOn: !s.camOn }));
+  toggleScreen = () => this.setState((s) => ({ screenOn: !s.screenOn }));
+  endCall = () => this.setState({ view: 'mensagens' });
+  markAllRead = () => this.setState((s) => ({ notifications: s.notifications.map((n) => ({ ...n, unread: false })) }));
+  readNotification = (id) => this.setState((s) => ({ notifications: s.notifications.map((n) => (n.id === id ? { ...n, unread: false } : n)) }));
+
+  renderVals() {
+    const s = this.state;
+    const statusLabel = { online: 'Online agora', away: 'Ausente', offline: 'Offline' };
+    const unreadNotifCount = s.notifications.filter((n) => n.unread).length;
+    return {
+      isMensagens: s.view === 'mensagens',
+      isChamada: s.view === 'chamada',
+      isAlertas: s.view === 'alertas',
+      hasUnreadNotif: unreadNotifCount > 0,
+      unreadCount: unreadNotifCount,
+      goMensagens: () => this.setView('mensagens'),
+      goChamada: () => this.setView('chamada'),
+      goAlertas: () => this.setView('alertas'),
+      contact: { ...s.contact, statusLabel: statusLabel[s.contact.status] },
+      messages: s.messages,
+      composerText: s.composerText,
+      sendMessage: this.sendMessage,
+      onComposerChange: this.onComposerChange,
+      onComposerKeyDown: this.onComposerKeyDown,
+      micOn: s.micOn,
+      camOn: s.camOn,
+      screenOn: s.screenOn,
+      isMicOff: !s.micOn,
+      isCamOff: !s.camOn,
+      toggleMic: this.toggleMic,
+      toggleCam: this.toggleCam,
+      toggleScreen: this.toggleScreen,
+      endCall: this.endCall,
+      markAllRead: this.markAllRead,
+      notifications: s.notifications.map((n) => ({
+        ...n,
+        isMessage: n.type === 'message',
+        isCall: n.type === 'call',
+        isPresence: n.type === 'presence',
+        onRead: () => this.readNotification(n.id)
+      }))
+    };
+  }
+}
+</script>
+</body>
+</html>
