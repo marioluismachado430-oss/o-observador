@@ -1,58 +1,87 @@
-// public/script.js - Inteligência, tempo e segurança
+// public/script.js
 
-// 1. Configurações Iniciais
-const SENHA_CORRETA = "admin123"; // Pode trocar esta senha depois
-const TEMPO_INATIVIDADE = 30000; // 30 segundos (em milissegundos)
-let cronometroInatividade; // Variável para guardar a contagem
+const SENHA_CORRETA = "admin123"; // A senha secreta digitada na busca
+const TEMPO_INATIVIDADE = 30000; // 30 segundos
+let cronometroInatividade;
+let socket = null;
 
-// Elementos da página que vamos manipular
-const telaBloqueio = document.getElementById('telaBloqueio');
-const conteudoPrincipal = document.getElementById('conteudoPrincipal');
-const mensagemErro = document.getElementById('mensagemErro');
+const telaJornal = document.getElementById('telaJornal');
+const telaChat = document.getElementById('telaChat');
+const campoBusca = document.getElementById('campoBusca');
 const gradeNoticias = document.getElementById('gradeNoticias');
+const areaMensagens = document.getElementById('areaMensagens');
+const mensagemInput = document.getElementById('mensagemInput');
+const arquivoInput = document.getElementById('arquivoInput');
 
-// 2. Validação da Senha
-function desbloquear() {
-    const senhaDigitada = document.getElementById('senhaInput').value;
-    
-    if (senhaDigitada === SENHA_CORRETA) {
-        // Se a senha estiver certa, esconde o bloqueio e mostra as notícias
-        telaBloqueio.style.display = 'none';
-        conteudoPrincipal.style.display = 'block';
-        document.getElementById('senhaInput').value = ""; // Limpa a senha
-        mensagemErro.innerText = "";
+// 1. CARREGAR NOTÍCIAS REAIS
+async function carregarNoticias() {
+    try {
+        const resposta = await fetch('https://servicodados.ibge.gov.br/api/3/noticias/?qtd=6');
+        const dados = await resposta.json();
+        gradeNoticias.innerHTML = ""; 
+        dados.items.forEach(noticia => {
+            const cartao = document.createElement('div');
+            cartao.className = 'noticia-cartao';
+            cartao.innerHTML = `<h3>${noticia.titulo}</h3><p>${noticia.introducao}</p>`;
+            gradeNoticias.appendChild(cartao);
+        });
+    } catch (erro) {
+        gradeNoticias.innerHTML = "<p>Nenhum resultado encontrado no acervo.</p>";
+    }
+}
+carregarNoticias();
+
+// 2. GATILHO DA BUSCA (Verifica se digitou a senha no campo de pesquisar)
+function verificarBuscaOuGatilho() {
+    const textoDigitado = campoBusca.value.trim();
+
+    if (textoDigitado === SENHA_CORRETA) {
+        // Se for a senha, limpa o campo e entra na sala de chat secreta
+        campoBusca.value = "";
+        telaJornal.className = 'camada-oculta';
+        telaChat.className = 'camada-ativa';
+        telaChat.style.display = 'flex';
         
-        carregarNoticias(); // Executa a busca de notícias na internet
-        iniciarMonitoramento(); // Começa a contar os 30 segundos
+        iniciarConexaoChat();
+        iniciarMonitoramentoInatividade();
     } else {
-        mensagemErro.innerText = "Senha incorreta. Acesso negado.";
+        // Se for uma pesquisa normal, simula que não encontrou nada ou avisa
+        alert("Nenhum documento encontrado com o termo: " + textoDigitado);
+        campoBusca.value = "";
     }
 }
 
-// 3. Regra de Bloqueio por Inatividade
+// Permite acionar pressionando "Enter" no campo de busca do jornal
+campoBusca.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+        verificarBuscaOuGatilho();
+    }
+});
+
+// 3. REGRA DE INATIVIDADE (30 segundos sem mexer volta para o jornal)
 function bloquearPorInatividade() {
-    telaBloqueio.style.display = 'flex'; // Volta a cobrir a tela
-    conteudoPrincipal.style.display = 'none'; // Esconde as notícias
-    pararMonitoramento(); // Para de contar o tempo até o próximo login
+    telaChat.className = 'camada-oculta';
+    telaChat.style.display = 'none';
+    telaJornal.className = 'camada-ativa';
+    
+    if (socket) socket.close();
+    pararMonitoramentoInatividade();
 }
 
-// Zera a contagem e recomeça os 30 segundos
 function reiniciarCronometro() {
     clearTimeout(cronometroInatividade);
     cronometroInatividade = setTimeout(bloquearPorInatividade, TEMPO_INATIVIDADE);
 }
 
-// 4. Detecção de Movimento
-function iniciarMonitoramento() {
+function iniciarMonitoramentoInatividade() {
     reiniciarCronometro();
-    // Qualquer toque, clique ou tecla digitada reinicia o cronômetro
     window.addEventListener('mousemove', reiniciarCronometro);
     window.addEventListener('keypress', reiniciarCronometro);
     window.addEventListener('click', reiniciarCronometro);
     window.addEventListener('touchstart', reiniciarCronometro);
 }
 
-function pararMonitoramento() {
+function pararMonitoramentoInatividade() {
     clearTimeout(cronometroInatividade);
     window.removeEventListener('mousemove', reiniciarCronometro);
     window.removeEventListener('keypress', reiniciarCronometro);
@@ -60,29 +89,57 @@ function pararMonitoramento() {
     window.removeEventListener('touchstart', reiniciarCronometro);
 }
 
-// 5. Integração com as Notícias
-async function carregarNoticias() {
-    gradeNoticias.innerHTML = "<p>A puxar as atualizações mais recentes...</p>";
-    
-    try {
-        // Busca 6 notícias gratuitas e públicas
-        const resposta = await fetch('https://servicodados.ibge.gov.br/api/3/noticias/?qtd=6');
-        const dados = await resposta.json();
-        
-        gradeNoticias.innerHTML = ""; // Limpa o aviso
-        
-        // Pega cada notícia recebida e cria um bloquinho visual no HTML
-        dados.items.forEach(noticia => {
-            const cartao = document.createElement('div');
-            cartao.className = 'noticia-cartao';
-            cartao.innerHTML = `
-                <h3>${noticia.titulo}</h3>
-                <p>${noticia.introducao}</p>
-                <a href="${noticia.link}" target="_blank">Ler na íntegra</a>
-            `;
-            gradeNoticias.appendChild(cartao);
-        });
-    } catch (erro) {
-        gradeNoticias.innerHTML = "<p>Falha na comunicação. Verifique a conexão com a internet.</p>";
+// 4. SISTEMA DO CHAT
+function iniciarConexaoChat() {
+    const protocolo = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
+    socket = new WebSocket(protocol + window.location.host);
+
+    socket.onopen = () => { document.getElementById('statusConexao').innerText = "Online"; document.getElementById('statusConexao').className = "status-online"; };
+    socket.onclose = () => { document.getElementById('statusConexao').innerText = "Desconectado"; document.getElementById('statusConexao').className = "status-offline"; };
+
+    socket.onmessage = (evento) => {
+        const dados = JSON.parse(evento.data);
+        exibirMensagem(dados.conteudo, dados.tipo, 'mensagem-outros');
+    };
+}
+
+function enviarMensagemTexto() {
+    const texto = mensagemInput.value.trim();
+    if (texto !== "" && socket && socket.readyState === WebSocket.OPEN) {
+        socket.send(JSON.stringify({ tipo: 'texto', conteudo: texto }));
+        exibirMensagem(texto, 'texto', 'mensagem-minha');
+        mensagemInput.value = "";
     }
+}
+
+mensagemInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') enviarMensagemTexto(); });
+
+arquivoInput.addEventListener('change', function(evento) {
+    const arquivo = evento.target.files[0];
+    if (!arquivo) return;
+
+    const leitor = new FileReader();
+    leitor.onload = function(e) {
+        const dadosBase64 = e.target.result;
+        let tipoMensagem = arquivo.type.startsWith('image/') ? 'imagem' : 'arquivo';
+
+        if (socket && socket.readyState === WebSocket.OPEN) {
+            socket.send(JSON.stringify({ tipo: tipoMensagem, conteudo: dadosBase64 }));
+            exibirMensagem(dadosBase64, tipoMensagem, 'mensagem-minha');
+        }
+    };
+    leitor.readAsDataURL(arquivo);
+    arquivoInput.value = ""; 
+});
+
+function exibirMensagem(conteudo, tipo, classeCSS) {
+    const balao = document.createElement('div');
+    balao.classList.add('mensagem', classeCSS);
+
+    if (tipo === 'texto') { balao.innerText = conteudo; } 
+    else if (tipo === 'imagem') { const img = document.createElement('img'); img.src = conteudo; balao.appendChild(img); } 
+    else if (tipo === 'arquivo') { const link = document.createElement('a'); link.href = conteudo; link.download = "arquivo_recebido"; link.innerText = "📁 Baixar"; balao.appendChild(link); }
+
+    areaMensagens.appendChild(balao);
+    areaMensagens.scrollTop = areaMensagens.scrollHeight; 
 }
