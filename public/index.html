@@ -9,13 +9,12 @@
 </head>
 <body>
 
-    <!-- CAMADA 1: O JORNAL (Com o campo de busca armadilha) -->
+    <!-- CAMADA 1: O JORNAL (Visível por padrão) -->
     <div id="telaJornal" class="camada-ativa">
         <header class="jornal-header">
             <h1>O Observador</h1>
             <p>Portal de Notícias e Atualizações</p>
             
-            <!-- CAMPO DE BUSCA QUE FUNCIONA COMO GATILHO -->
             <div class="busca-container">
                 <input type="text" id="campoBusca" placeholder="Buscar no acervo...">
                 <button onclick="verificarBuscaOuGatilho()" class="btn-busca">🔍</button>
@@ -27,7 +26,7 @@
         </main>
     </div>
 
-    <!-- CAMADA 2: O CHAT (Estilo WhatsApp) -->
+    <!-- CAMADA 2: O CHAT (Oculto por padrão) -->
     <div id="telaChat" class="camada-oculta">
         <header class="chat-header">
             <h2>O Observador - Sala Segura</h2>
