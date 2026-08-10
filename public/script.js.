@@ -1,0 +1,88 @@
+// public/script.js - Inteligência, tempo e segurança
+
+// 1. Configurações Iniciais
+const SENHA_CORRETA = "admin123"; // Pode trocar esta senha depois
+const TEMPO_INATIVIDADE = 30000; // 30 segundos (em milissegundos)
+let cronometroInatividade; // Variável para guardar a contagem
+
+// Elementos da página que vamos manipular
+const telaBloqueio = document.getElementById('telaBloqueio');
+const conteudoPrincipal = document.getElementById('conteudoPrincipal');
+const mensagemErro = document.getElementById('mensagemErro');
+const gradeNoticias = document.getElementById('gradeNoticias');
+
+// 2. Validação da Senha
+function desbloquear() {
+    const senhaDigitada = document.getElementById('senhaInput').value;
+    
+    if (senhaDigitada === SENHA_CORRETA) {
+        // Se a senha estiver certa, esconde o bloqueio e mostra as notícias
+        telaBloqueio.style.display = 'none';
+        conteudoPrincipal.style.display = 'block';
+        document.getElementById('senhaInput').value = ""; // Limpa a senha
+        mensagemErro.innerText = "";
+        
+        carregarNoticias(); // Executa a busca de notícias na internet
+        iniciarMonitoramento(); // Começa a contar os 30 segundos
+    } else {
+        mensagemErro.innerText = "Senha incorreta. Acesso negado.";
+    }
+}
+
+// 3. Regra de Bloqueio por Inatividade
+function bloquearPorInatividade() {
+    telaBloqueio.style.display = 'flex'; // Volta a cobrir a tela
+    conteudoPrincipal.style.display = 'none'; // Esconde as notícias
+    pararMonitoramento(); // Para de contar o tempo até o próximo login
+}
+
+// Zera a contagem e recomeça os 30 segundos
+function reiniciarCronometro() {
+    clearTimeout(cronometroInatividade);
+    cronometroInatividade = setTimeout(bloquearPorInatividade, TEMPO_INATIVIDADE);
+}
+
+// 4. Detecção de Movimento
+function iniciarMonitoramento() {
+    reiniciarCronometro();
+    // Qualquer toque, clique ou tecla digitada reinicia o cronômetro
+    window.addEventListener('mousemove', reiniciarCronometro);
+    window.addEventListener('keypress', reiniciarCronometro);
+    window.addEventListener('click', reiniciarCronometro);
+    window.addEventListener('touchstart', reiniciarCronometro);
+}
+
+function pararMonitoramento() {
+    clearTimeout(cronometroInatividade);
+    window.removeEventListener('mousemove', reiniciarCronometro);
+    window.removeEventListener('keypress', reiniciarCronometro);
+    window.removeEventListener('click', reiniciarCronometro);
+    window.removeEventListener('touchstart', reiniciarCronometro);
+}
+
+// 5. Integração com as Notícias
+async function carregarNoticias() {
+    gradeNoticias.innerHTML = "<p>A puxar as atualizações mais recentes...</p>";
+    
+    try {
+        // Busca 6 notícias gratuitas e públicas
+        const resposta = await fetch('https://servicodados.ibge.gov.br/api/3/noticias/?qtd=6');
+        const dados = await resposta.json();
+        
+        gradeNoticias.innerHTML = ""; // Limpa o aviso
+        
+        // Pega cada notícia recebida e cria um bloquinho visual no HTML
+        dados.items.forEach(noticia => {
+            const cartao = document.createElement('div');
+            cartao.className = 'noticia-cartao';
+            cartao.innerHTML = `
+                <h3>${noticia.titulo}</h3>
+                <p>${noticia.introducao}</p>
+                <a href="${noticia.link}" target="_blank">Ler na íntegra</a>
+            `;
+            gradeNoticias.appendChild(cartao);
+        });
+    } catch (erro) {
+        gradeNoticias.innerHTML = "<p>Falha na comunicação. Verifique a conexão com a internet.</p>";
+    }
+}
