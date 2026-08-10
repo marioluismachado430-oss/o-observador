@@ -1,7 +1,7 @@
 // public/script.js
 
-const SENHA_CORRETA = "admin123";
-const TEMPO_INATIVIDADE = 30000; // 30 segundos
+const SENHA_CORRETA = "106230"; // Senha atualizada para o acesso ao chat
+const TEMPO_INATIVIDADE = 30000; // 30 segundos de inatividade para retornar ao jornal
 let cronometroInatividade;
 let socket = null;
 
@@ -16,17 +16,19 @@ const arquivoInput = document.getElementById('arquivoInput');
 // 1. ATUALIZAR O RELÓGIO EM TEMPO REAL NO TOPO DO JORNAL
 setInterval(() => {
     const agora = new Date();
-    relogioAtual.innerText = agora.toLocaleTimeString('pt-BR');
+    if (relogioAtual) {
+        relogioAtual.innerText = agora.toLocaleTimeString('pt-BR');
+    }
 }, 1000);
 
-// 2. GATILHO DA BUSCA (Digitar a senha secreta abre a sala segura)
+// 2. GATILHO DA BUSCA (Verifica se digitou a nova senha 106230)
 function verificarBuscaOuGatilho() {
     const textoDigitado = campoBusca.value.trim();
 
     if (textoDigitado === SENHA_CORRETA) {
         campoBusca.value = "";
         
-        // Oculta o jornal e ativa o chat
+        // Esconde o jornal e ativa a sala segura
         telaJornal.className = 'camada-oculta';
         telaChat.className = 'camada-ativa';
         
@@ -38,11 +40,13 @@ function verificarBuscaOuGatilho() {
     }
 }
 
-campoBusca.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') {
-        verificarBuscaOuGatilho();
-    }
-});
+if (campoBusca) {
+    campoBusca.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            verificarBuscaOuGatilho();
+        }
+    });
+}
 
 // 3. SEGURANÇA POR INATIVIDADE (30 segundos sem interagir retorna ao jornal)
 function bloquearPorInatividade() {
@@ -80,13 +84,19 @@ function iniciarConexaoChat() {
     socket = new WebSocket(protocol + window.location.host);
 
     socket.onopen = () => { 
-        document.getElementById('statusConexao').innerText = "Online"; 
-        document.getElementById('statusConexao').className = "status-online"; 
+        const status = document.getElementById('statusConexao');
+        if (status) {
+            status.innerText = "Online"; 
+            status.className = "status-online";
+        }
     };
     
     socket.onclose = () => { 
-        document.getElementById('statusConexao').innerText = "Desconectado"; 
-        document.getElementById('statusConexao').className = "status-offline"; 
+        const status = document.getElementById('statusConexao');
+        if (status) {
+            status.innerText = "Desconectado"; 
+            status.className = "status-offline";
+        }
     };
 
     socket.onmessage = (evento) => {
@@ -104,34 +114,52 @@ function enviarMensagemTexto() {
     }
 }
 
-mensagemInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') enviarMensagemTexto(); });
+if (mensagemInput) {
+    mensagemInput.addEventListener('keypress', (e) => { 
+        if (e.key === 'Enter') enviarMensagemTexto(); 
+    });
+}
 
-arquivoInput.addEventListener('change', function(evento) {
-    const arquivo = evento.target.files[0];
-    if (!arquivo) return;
+if (arquivoInput) {
+    arquivoInput.addEventListener('change', function(evento) {
+        const arquivo = evento.target.files[0];
+        if (!arquivo) return;
 
-    const leitor = new FileReader();
-    leitor.onload = function(e) {
-        const dadosBase64 = e.target.result;
-        let tipoMensagem = arquivo.type.startsWith('image/') ? 'imagem' : 'arquivo';
+        const leitor = new FileReader();
+        leitor.onload = function(e) {
+            const dadosBase64 = e.target.result;
+            let tipoMensagem = arquivo.type.startsWith('image/') ? 'imagem' : 'arquivo';
 
-        if (socket && socket.readyState === WebSocket.OPEN) {
-            socket.send(JSON.stringify({ tipo: tipoMensagem, conteudo: dadosBase64 }));
-            exibirMensagem(dadosBase64, tipoMensagem, 'mensagem-minha');
-        }
-    };
-    leitor.readAsDataURL(arquivo);
-    arquivoInput.value = ""; 
-});
+            if (socket && socket.readyState === WebSocket.OPEN) {
+                socket.send(JSON.stringify({ tipo: tipoMensagem, conteudo: dadosBase64 }));
+                exibirMensagem(dadosBase64, tipoMensagem, 'mensagem-minha');
+            }
+        };
+        leitor.readAsDataURL(arquivo);
+        arquivoInput.value = ""; 
+    });
+}
 
 function exibirMensagem(conteudo, tipo, classeCSS) {
     const balao = document.createElement('div');
     balao.classList.add('mensagem', classeCSS);
 
-    if (tipo === 'texto') { balao.innerText = conteudo; } 
-    else if (tipo === 'imagem') { const img = document.createElement('img'); img.src = conteudo; balao.appendChild(img); } 
-    else if (tipo === 'arquivo') { const link = document.createElement('a'); link.href = conteudo; link.download = "arquivo_recebido"; link.innerText = "📁 Baixar"; balao.appendChild(link); }
+    if (tipo === 'texto') { 
+        balao.innerText = conteudo; 
+    } else if (tipo === 'imagem') { 
+        const img = document.createElement('img'); 
+        img.src = conteudo; 
+        balao.appendChild(img); 
+    } else if (tipo === 'arquivo') { 
+        const link = document.createElement('a'); 
+        link.href = conteudo; 
+        link.download = "arquivo_recebido"; 
+        link.innerText = "📁 Baixar"; 
+        balao.appendChild(link); 
+    }
 
-    areaMensagens.appendChild(balao);
-    areaMensagens.scrollTop = areaMensagens.scrollHeight; 
+    if (areaMensagens) {
+        areaMensagens.appendChild(balao);
+        areaMensagens.scrollTop = areaMensagens.scrollHeight; 
+    }
 }
