@@ -8,37 +8,25 @@ let socket = null;
 const telaJornal = document.getElementById('telaJornal');
 const telaChat = document.getElementById('telaChat');
 const campoBusca = document.getElementById('campoBusca');
-const gradeNoticias = document.getElementById('gradeNoticias');
+const relogioAtual = document.getElementById('relogioAtual');
 const areaMensagens = document.getElementById('areaMensagens');
 const mensagemInput = document.getElementById('mensagemInput');
 const arquivoInput = document.getElementById('arquivoInput');
 
-// 1. CARREGAR NOTÍCIAS REAIS DO IBGE
-async function carregarNoticias() {
-    try {
-        const resposta = await fetch('https://servicodados.ibge.gov.br/api/3/noticias/?qtd=6');
-        const dados = await resposta.json();
-        gradeNoticias.innerHTML = ""; 
-        dados.items.forEach(noticia => {
-            const cartao = document.createElement('div');
-            cartao.className = 'noticia-cartao';
-            cartao.innerHTML = `<h3>${noticia.titulo}</h3><p>${noticia.introducao}</p>`;
-            gradeNoticias.appendChild(cartao);
-        });
-    } catch (erro) {
-        gradeNoticias.innerHTML = "<p>Nenhum resultado encontrado no acervo.</p>";
-    }
-}
-carregarNoticias();
+// 1. ATUALIZAR O RELÓGIO EM TEMPO REAL NO TOPO DO JORNAL
+setInterval(() => {
+    const agora = new Date();
+    relogioAtual.innerText = agora.toLocaleTimeString('pt-BR');
+}, 1000);
 
-// 2. GATILHO DA BUSCA (Entrar na Sala Segura)
+// 2. GATILHO DA BUSCA (Digitar a senha secreta abre a sala segura)
 function verificarBuscaOuGatilho() {
     const textoDigitado = campoBusca.value.trim();
 
     if (textoDigitado === SENHA_CORRETA) {
         campoBusca.value = "";
         
-        // Alterna as classes das camadas de forma limpa
+        // Oculta o jornal e ativa o chat
         telaJornal.className = 'camada-oculta';
         telaChat.className = 'camada-ativa';
         
@@ -56,7 +44,7 @@ campoBusca.addEventListener('keypress', (e) => {
     }
 });
 
-// 3. SEGURANÇA POR INATIVIDADE (30s sem mexer volta para o jornal)
+// 3. SEGURANÇA POR INATIVIDADE (30 segundos sem interagir retorna ao jornal)
 function bloquearPorInatividade() {
     telaChat.className = 'camada-oculta';
     telaJornal.className = 'camada-ativa';
@@ -86,7 +74,7 @@ function pararMonitoramentoInatividade() {
     window.removeEventListener('touchstart', reiniciarCronometro);
 }
 
-// 4. SISTEMA DO CHAT
+// 4. SISTEMA DE COMUNICAÇÃO (CHAT)
 function iniciarConexaoChat() {
     const protocolo = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
     socket = new WebSocket(protocol + window.location.host);
