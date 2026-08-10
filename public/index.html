@@ -1,0 +1,39 @@
+<!-- public/index.html -->
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Copiloto de Operações</title>
+    <!-- Liga o HTML ao arquivo de design CSS -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- TELA DE SEGURANÇA (Bloqueio) -->
+    <div id="telaBloqueio" class="bloqueio-container">
+        <div class="bloqueio-caixa">
+            <h2>Acesso Restrito</h2>
+            <p>Insira a senha de operação.</p>
+            <input type="password" id="senhaInput" placeholder="Digite a senha...">
+            <button onclick="desbloquear()">Acessar</button>
+            <p id="mensagemErro" class="erro"></p>
+        </div>
+    </div>
+
+    <!-- ÁREA PRINCIPAL (Oculta até a senha ser inserida) -->
+    <div id="conteudoPrincipal" class="conteudo-oculto">
+        <header>
+            <h1>Copiloto de Operações</h1>
+            <p>Painel de Atualizações e Notícias</p>
+        </header>
+        
+        <main id="gradeNoticias" class="noticias-grid">
+            <p>Conectando à rede de notícias...</p>
+        </main>
+    </div>
+
+    <!-- Liga o HTML ao arquivo de lógica JavaScript -->
+    <script src="script.js"></script>
+</body>
+</html>
