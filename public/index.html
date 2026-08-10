@@ -4,29 +4,62 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Notícias do Dia</title>
+    <title>O Observador</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-    <!-- CAMADA 1: O JORNAL (Visível por padrão) -->
+    <!-- CAMADA 1: O JORNAL (Com o layout clássico solicitado) -->
     <div id="telaJornal" class="camada-ativa">
-        <header class="jornal-header">
-            <h1>O Observador</h1>
-            <p>Portal de Notícias e Atualizações</p>
-            
-            <div class="busca-container">
-                <input type="text" id="campoBusca" placeholder="Buscar no acervo...">
-                <button onclick="verificarBuscaOuGatilho()" class="btn-busca">🔍</button>
-            </div>
-        </header>
         
-        <main id="gradeNoticias" class="noticias-grid">
-            <p>A conectar à rede de notícias...</p>
+        <!-- BARRA SUPERIOR DE INFORMAÇÕES -->
+        <div class="topo-informativo">
+            <span id="dataAtual">segunda-feira, 10 de agosto de 2026</span>
+            <span>Fontes Abertas em Tempo Real</span>
+            <span id="relogioAtual">13:08:32</span>
+        </div>
+
+        <!-- CABEÇALHO DO JORNAL -->
+        <header class="jornal-header">
+            <div class="fundado">FUNDADO EM 1923</div>
+            <h1 class="titulo-principal">O <span>Observador</span></h1>
+        </header>
+
+        <!-- BARRA DE NAVEGAÇÃO E BUSCA -->
+        <nav class="barra-navegacao">
+            <div class="links-menu">
+                <a href="#" class="ativo">Geral</a>
+                <a href="#">Edições</a>
+            </div>
+            <div class="busca-container">
+                <!-- O CAMPO DE BUSCA É O NOSSO GATILHO SECRETO -->
+                <input type="text" id="campoBusca" placeholder="Buscar no acervo...">
+            </div>
+        </nav>
+
+        <!-- CORPO DA PÁGINA (MANCHETE E BLOCOS) -->
+        <main class="conteudo-jornal">
+            <section class="bloco-manchete">
+                <div class="manchete-texto">
+                    <h2>Inovações Tecnológicas em Redes Descentralizadas</h2>
+                    <p>Acompanhe os desenvolvimentos mais recentes da infraestrutura digital global...</p>
+                </div>
+            </section>
+
+            <div class="cards-inferiores">
+                <div class="card-info">
+                    <span class="card-titulo">CÂMBIO (EUR / BRL)</span>
+                    <p class="card-valor">Indisponível</p>
+                </div>
+                <div class="card-info">
+                    <span class="card-titulo">TEMPO LOCAL</span>
+                    <p class="card-valor">22.6°C - Vento 20.7 km/h</p>
+                </div>
+            </div>
         </main>
     </div>
 
-    <!-- CAMADA 2: O CHAT (Oculto por padrão) -->
+    <!-- CAMADA 2: O CHAT SEGURO (Estilo WhatsApp - Oculto por padrão) -->
     <div id="telaChat" class="camada-oculta">
         <header class="chat-header">
             <h2>O Observador - Sala Segura</h2>
