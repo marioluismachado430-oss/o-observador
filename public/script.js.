@@ -1,6 +1,6 @@
 // public/script.js
 
-const SENHA_CORRETA = "admin123"; // A senha secreta digitada na busca
+const SENHA_CORRETA = "admin123";
 const TEMPO_INATIVIDADE = 30000; // 30 segundos
 let cronometroInatividade;
 let socket = null;
@@ -13,7 +13,7 @@ const areaMensagens = document.getElementById('areaMensagens');
 const mensagemInput = document.getElementById('mensagemInput');
 const arquivoInput = document.getElementById('arquivoInput');
 
-// 1. CARREGAR NOTÍCIAS REAIS
+// 1. CARREGAR NOTÍCIAS REAIS DO IBGE
 async function carregarNoticias() {
     try {
         const resposta = await fetch('https://servicodados.ibge.gov.br/api/3/noticias/?qtd=6');
@@ -31,37 +31,34 @@ async function carregarNoticias() {
 }
 carregarNoticias();
 
-// 2. GATILHO DA BUSCA (Verifica se digitou a senha no campo de pesquisar)
+// 2. GATILHO DA BUSCA (Entrar na Sala Segura)
 function verificarBuscaOuGatilho() {
     const textoDigitado = campoBusca.value.trim();
 
     if (textoDigitado === SENHA_CORRETA) {
-        // Se for a senha, limpa o campo e entra na sala de chat secreta
         campoBusca.value = "";
+        
+        // Alterna as classes das camadas de forma limpa
         telaJornal.className = 'camada-oculta';
         telaChat.className = 'camada-ativa';
-        telaChat.style.display = 'flex';
         
         iniciarConexaoChat();
         iniciarMonitoramentoInatividade();
     } else {
-        // Se for uma pesquisa normal, simula que não encontrou nada ou avisa
         alert("Nenhum documento encontrado com o termo: " + textoDigitado);
         campoBusca.value = "";
     }
 }
 
-// Permite acionar pressionando "Enter" no campo de busca do jornal
 campoBusca.addEventListener('keypress', (e) => {
     if (e.key === 'Enter') {
         verificarBuscaOuGatilho();
     }
 });
 
-// 3. REGRA DE INATIVIDADE (30 segundos sem mexer volta para o jornal)
+// 3. SEGURANÇA POR INATIVIDADE (30s sem mexer volta para o jornal)
 function bloquearPorInatividade() {
     telaChat.className = 'camada-oculta';
-    telaChat.style.display = 'none';
     telaJornal.className = 'camada-ativa';
     
     if (socket) socket.close();
@@ -94,8 +91,15 @@ function iniciarConexaoChat() {
     const protocolo = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
     socket = new WebSocket(protocol + window.location.host);
 
-    socket.onopen = () => { document.getElementById('statusConexao').innerText = "Online"; document.getElementById('statusConexao').className = "status-online"; };
-    socket.onclose = () => { document.getElementById('statusConexao').innerText = "Desconectado"; document.getElementById('statusConexao').className = "status-offline"; };
+    socket.onopen = () => { 
+        document.getElementById('statusConexao').innerText = "Online"; 
+        document.getElementById('statusConexao').className = "status-online"; 
+    };
+    
+    socket.onclose = () => { 
+        document.getElementById('statusConexao').innerText = "Desconectado"; 
+        document.getElementById('statusConexao').className = "status-offline"; 
+    };
 
     socket.onmessage = (evento) => {
         const dados = JSON.parse(evento.data);
