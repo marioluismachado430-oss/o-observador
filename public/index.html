@@ -1,40 +1,51 @@
-<!-- public/index.html - Estrutura principal da página -->
+<!-- public/index.html -->
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>O Observador</title>
-    <!-- Liga esta estrutura ao arquivo de design CSS -->
+    <title>Notícias do Dia</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-    <!-- TELA DE SEGURANÇA (O bloqueio que exige senha) -->
-    <div id="telaBloqueio" class="bloqueio-container">
-        <div class="bloqueio-caixa">
-            <h2>Acesso Restrito - O Observador</h2>
-            <p>Insira a senha de comunicação.</p>
-            <input type="password" id="senhaInput" placeholder="Digite a senha...">
-            <button onclick="desbloquear()">Acessar</button>
-            <p id="mensagemErro" class="erro"></p>
-        </div>
-    </div>
-
-    <!-- ÁREA PRINCIPAL (Onde aparecem as informações, oculta no início) -->
-    <div id="conteudoPrincipal" class="conteudo-oculto">
-        <header>
+    <!-- CAMADA 1: O JORNAL (Com o campo de busca armadilha) -->
+    <div id="telaJornal" class="camada-ativa">
+        <header class="jornal-header">
             <h1>O Observador</h1>
-            <p>Painel de Comunicação e Notícias</p>
+            <p>Portal de Notícias e Atualizações</p>
+            
+            <!-- CAMPO DE BUSCA QUE FUNCIONA COMO GATILHO -->
+            <div class="busca-container">
+                <input type="text" id="campoBusca" placeholder="Buscar no acervo...">
+                <button onclick="verificarBuscaOuGatilho()" class="btn-busca">🔍</button>
+            </div>
         </header>
         
-        <!-- Grade onde as notícias da internet serão desenhadas -->
         <main id="gradeNoticias" class="noticias-grid">
             <p>A conectar à rede de notícias...</p>
         </main>
     </div>
 
-    <!-- Liga a página ao arquivo de inteligência JavaScript -->
+    <!-- CAMADA 2: O CHAT (Estilo WhatsApp) -->
+    <div id="telaChat" class="camada-oculta">
+        <header class="chat-header">
+            <h2>O Observador - Sala Segura</h2>
+            <span id="statusConexao" class="status-offline">Desconectado</span>
+        </header>
+        
+        <main id="areaMensagens" class="area-mensagens">
+        </main>
+
+        <footer class="chat-input-area">
+            <input type="file" id="arquivoInput" style="display: none;" accept="image/*, .pdf, .doc">
+            <button class="btn-anexo" onclick="document.getElementById('arquivoInput').click()">📎</button>
+            
+            <input type="text" id="mensagemInput" placeholder="Escreva a sua mensagem...">
+            <button class="btn-enviar" onclick="enviarMensagemTexto()">➤</button>
+        </footer>
+    </div>
+
     <script src="script.js"></script>
 </body>
 </html>
