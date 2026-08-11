@@ -28,9 +28,10 @@
                 <a href="#" class="ativo">Geral</a>
                 <a href="#">Edições</a>
             </div>
-            <!-- BARRA DE BUSCA COM O BOTÃO CLICÁVEL -->
+            
             <div class="busca-container">
                 <input type="text" id="campoBusca" placeholder="Buscar no acervo...">
+                <!-- Botão com chamada direta para a função -->
                 <button onclick="verificarBuscaOuGatilho()" class="btn-busca">🔍</button>
             </div>
         </nav>
@@ -56,7 +57,7 @@
         </main>
     </div>
 
-    <!-- CAMADA 2: O CHAT SEGURO (Estilo WhatsApp) -->
+    <!-- CAMADA 2: O CHAT SEGURO -->
     <div id="telaChat" class="camada-oculta">
         <header class="chat-header">
             <h2>O Observador - Sala Segura</h2>
@@ -75,6 +76,7 @@
         </footer>
     </div>
 
-    <script src="script.js"></script>
+    <!-- Adicionado '?v=2' para forçar o navegador a atualizar o script -->
+    <script src="script.js?v=2"></script>
 </body>
 </html>
