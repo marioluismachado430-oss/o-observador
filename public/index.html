@@ -29,11 +29,11 @@
                 <a href="#">Edições</a>
             </div>
             
-            <div class="busca-container">
-                <input type="text" id="campoBusca" placeholder="Buscar no acervo...">
-                <!-- Botão com chamada direta para a função -->
-                <button onclick="verificarBuscaOuGatilho()" class="btn-busca">🔍</button>
-            </div>
+            <!-- FORMULÁRIO DE BUSCA: Garante funcionamento nativo no tablet -->
+            <form id="formBusca" class="busca-container" onsubmit="verificarBuscaOuGatilho(event)">
+                <input type="text" id="campoBusca" placeholder="Buscar no acervo..." autocomplete="off">
+                <button type="submit" class="btn-busca">🔍</button>
+            </form>
         </nav>
 
         <main class="conteudo-jornal">
@@ -76,7 +76,6 @@
         </footer>
     </div>
 
-    <!-- Adicionado '?v=2' para forçar o navegador a atualizar o script -->
-    <script src="script.js?v=2"></script>
+    <script src="script.js?v=3"></script>
 </body>
 </html>
