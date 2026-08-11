@@ -1,7 +1,7 @@
-// public/script.js - O Observador
+// public/script.js
 
-const SENHA_CORRETA = "106230"; // Senha secreta de acesso ao chat
-const TEMPO_INATIVIDADE = 30000; // 30 segundos de inatividade para retornar ao jornal
+const SENHA_CORRETA = "106230"; // A nova senha de acesso
+const TEMPO_INATIVIDADE = 30000; // 30 segundos
 let cronometroInatividade;
 let socket = null;
 
@@ -13,7 +13,7 @@ const areaMensagens = document.getElementById('areaMensagens');
 const mensagemInput = document.getElementById('mensagemInput');
 const arquivoInput = document.getElementById('arquivoInput');
 
-// 1. RELÓGIO EM TEMPO REAL NO TOPO
+// 1. RELÓGIO EM TEMPO REAL
 setInterval(() => {
     const agora = new Date();
     if (relogioAtual) {
@@ -21,7 +21,7 @@ setInterval(() => {
     }
 }, 1000);
 
-// 2. FUNÇÃO DE VERIFICAÇÃO DO GATILHO
+// 2. FUNÇÃO DO GATILHO (Acionada pelo botão da lupa ou pela tecla Enter)
 function verificarBuscaOuGatilho() {
     if (!campoBusca) return;
     const textoDigitado = campoBusca.value.trim();
@@ -29,7 +29,7 @@ function verificarBuscaOuGatilho() {
     if (textoDigitado === SENHA_CORRETA) {
         campoBusca.value = "";
         
-        // Oculta o jornal e exibe a sala de chat segura
+        // Esconde o jornal e abre o chat
         if (telaJornal) telaJornal.className = 'camada-oculta';
         if (telaChat) telaChat.className = 'camada-ativa';
         
@@ -41,17 +41,17 @@ function verificarBuscaOuGatilho() {
     }
 }
 
-// Ouve diretamente quando a tecla Enter é pressionada no campo de busca
+// Permite acionar também pressionando Enter
 if (campoBusca) {
     campoBusca.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') {
-            e.preventDefault(); // Evita comportamentos padrão do navegador
+            e.preventDefault();
             verificarBuscaOuGatilho();
         }
     });
 }
 
-// 3. SEGURANÇA POR INATIVIDADE (30 segundos sem mexer volta ao jornal)
+// 3. SEGURANÇA POR INATIVIDADE (30 segundos sem mexer retorna ao jornal)
 function bloquearPorInatividade() {
     if (telaChat) telaChat.className = 'camada-oculta';
     if (telaJornal) telaJornal.className = 'camada-ativa';
