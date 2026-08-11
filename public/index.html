@@ -3,9 +3,10 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>O Observador</title>
     <style>
+        * { box-sizing: border-box; }
         body {
             margin: 0;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -30,7 +31,7 @@
         .topo-informativo {
             display: flex;
             justify-content: space-between;
-            padding: 6px 20px;
+            padding: 6px 15px;
             font-size: 11px;
             color: #666;
             border-bottom: 1px solid #e2e8f0;
@@ -38,18 +39,18 @@
 
         .jornal-header {
             text-align: center;
-            padding: 15px 20px 5px 20px;
+            padding: 10px 15px 5px 15px;
         }
         .fundado {
             font-size: 10px;
             letter-spacing: 2px;
             color: #555;
-            margin-bottom: 5px;
+            margin-bottom: 3px;
             font-weight: 600;
         }
         .titulo-principal {
             font-family: 'Georgia', serif;
-            font-size: 36px;
+            font-size: 32px;
             margin: 0;
             font-weight: bold;
             color: #111;
@@ -63,7 +64,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 10px 20px;
+            padding: 10px 15px;
             border-top: 1px solid #dcdfe6;
             border-bottom: 1px solid #dcdfe6;
         }
@@ -71,7 +72,7 @@
             text-decoration: none;
             color: #004085;
             font-size: 14px;
-            margin-right: 15px;
+            margin-right: 10px;
         }
 
         .busca-container {
@@ -79,24 +80,24 @@
             align-items: center;
         }
         .busca-container input {
-            padding: 8px 12px;
+            padding: 8px 10px;
             border: 1px solid #cbd5e1;
             border-radius: 4px 0 0 4px;
             font-size: 13px;
             outline: none;
-            width: 160px;
+            width: 130px;
         }
         .busca-container button {
             background-color: #2c3e50;
             color: white;
             border: 1px solid #2c3e50;
-            padding: 8px 12px;
+            padding: 8px 10px;
             border-radius: 0 4px 4px 0;
             cursor: pointer;
         }
 
         .conteudo-jornal {
-            padding: 20px;
+            padding: 15px;
             max-width: 1000px;
             margin: 0 auto;
             flex: 1;
@@ -104,12 +105,13 @@
         }
         .bloco-manchete {
             border-left: 3px solid #cbd5e1;
-            padding-left: 15px;
-            margin-bottom: 20px;
+            padding-left: 12px;
+            margin-bottom: 15px;
         }
         .bloco-manchete h2 {
             font-family: 'Georgia', serif;
-            margin: 0 0 10px 0;
+            margin: 0 0 8px 0;
+            font-size: 20px;
         }
 
         /* --- CAMADA 2: MODAL DA SENHA DA SALA --- */
@@ -124,18 +126,18 @@
         }
         .caixa-modal {
             background: white;
-            padding: 25px;
+            padding: 20px;
             border-radius: 8px;
             text-align: center;
-            width: 80%;
-            max-width: 320px;
+            width: 85%;
+            max-width: 300px;
             box-shadow: 0 4px 10px rgba(0,0,0,0.3);
         }
         .caixa-modal h3 { margin-top: 0; color: #2c3e50; }
         .caixa-modal input {
-            width: 90%;
+            width: 100%;
             padding: 10px;
-            margin: 15px 0;
+            margin: 12px 0;
             border: 1px solid #ccc;
             border-radius: 4px;
             font-size: 16px;
@@ -145,14 +147,14 @@
             background: #075e54;
             color: white;
             border: none;
-            padding: 10px 20px;
+            padding: 10px;
             border-radius: 4px;
             font-size: 16px;
             cursor: pointer;
             width: 100%;
         }
 
-        /* --- CAMADA 3: ESTILO DO CHAT --- */
+        /* --- CAMADA 3: ESTILO DO CHAT (MOBILE FRIENDLY) --- */
         #telaChat {
             display: flex;
             flex-direction: column;
@@ -162,31 +164,31 @@
         }
         .chat-header {
             background-color: #17212b;
-            padding: 15px 20px;
+            padding: 12px 15px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             border-bottom: 1px solid #242f3d;
         }
-        .status-online { color: #40b3e0; font-weight: bold; font-size: 13px; }
-        .status-offline { color: #e74c3c; font-weight: bold; font-size: 13px; }
+        .status-online { color: #40b3e0; font-weight: bold; font-size: 12px; }
+        .status-offline { color: #e74c3c; font-weight: bold; font-size: 12px; }
 
         .area-mensagens {
             flex: 1;
-            padding: 20px;
+            padding: 15px;
             overflow-y: auto;
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 10px;
             background-color: #0e1621;
         }
 
         .mensagem {
-            max-width: 75%;
-            padding: 10px 14px;
-            border-radius: 12px;
+            max-width: 80%;
+            padding: 10px 12px;
+            border-radius: 10px;
             word-wrap: break-word;
-            font-size: 15px;
+            font-size: 14px;
             line-height: 1.4;
         }
         .mensagem-minha {
@@ -203,27 +205,31 @@
         }
         .mensagem img {
             max-width: 100%;
-            border-radius: 8px;
-            margin-top: 5px;
+            border-radius: 6px;
+            margin-top: 4px;
         }
         .mensagem audio {
-            max-width: 100%;
-            margin-top: 5px;
+            width: 100%;
+            max-width: 240px;
+            margin-top: 4px;
         }
 
+        /* Rodapé de Envio Otimizado para Telemóvel */
         .chat-input-area {
             background-color: #17212b;
-            padding: 10px 15px;
+            padding: 8px 10px;
             display: flex;
-            gap: 8px;
+            gap: 6px;
             align-items: center;
+            width: 100%;
         }
         .chat-input-area input[type="text"] {
             flex: 1;
-            padding: 12px;
+            min-width: 0;
+            padding: 10px 12px;
             border: none;
             border-radius: 20px;
-            font-size: 15px;
+            font-size: 14px;
             outline: none;
             background-color: #242f3d;
             color: white;
@@ -233,9 +239,10 @@
             color: #40b3e0;
             border: none;
             border-radius: 50%;
-            width: 42px;
-            height: 42px;
-            font-size: 18px;
+            width: 38px;
+            height: 38px;
+            min-width: 38px;
+            font-size: 16px;
             cursor: pointer;
             display: flex;
             justify-content: center;
@@ -269,7 +276,7 @@
             </div>
             
             <div class="busca-container">
-                <input type="text" id="campoBusca" placeholder="Buscar no acervo..." autocomplete="off">
+                <input type="text" id="campoBusca" placeholder="Buscar..." autocomplete="off">
                 <button type="button" onclick="validarGatilhoMaster()">🔍</button>
             </div>
         </nav>
@@ -296,7 +303,7 @@
     <div id="telaChat" class="oculto">
         <header class="chat-header">
             <div>
-                <strong style="font-size: 16px;">O Observador - Sala Privada</strong>
+                <strong style="font-size: 15px;">O Observador - Sala Privada</strong>
             </div>
             <span id="statusConexao" class="status-offline">Desconectado</span>
         </header>
@@ -308,13 +315,14 @@
         </main>
 
         <footer class="chat-input-area">
+            <!-- Inputs corrigidos para aceitar arquivos diretamente sem forçar gravadores externos nativos -->
             <input type="file" id="fotoInput" style="display: none;" accept="image/*">
             <input type="file" id="audioInput" style="display: none;" accept="audio/*">
 
             <button type="button" class="btn-acao" onclick="document.getElementById('fotoInput').click()" title="Enviar Foto">📷</button>
             <button type="button" class="btn-acao" onclick="document.getElementById('audioInput').click()" title="Enviar Áudio">🎵</button>
             
-            <input type="text" id="mensagemInput" placeholder="Escreva uma mensagem...">
+            <input type="text" id="mensagemInput" placeholder="Mensagem...">
             <button type="button" class="btn-acao btn-enviar" onclick="enviarMensagemTexto()">➤</button>
         </footer>
     </div>
@@ -323,7 +331,7 @@
     <script>
         const SENHA_MASTER = "106230";
         const SENHA_SALA = "sala123";  
-        const TEMPO_INATIVIDADE = 120000; // Alterado para 2 minutos (120 segundos) de tolerância
+        const TEMPO_INATIVIDADE = 120000; // 2 minutos
 
         let cronometroInatividade;
         let socket = null;
@@ -341,7 +349,7 @@
                 campo.value = "";
                 document.getElementById('modalSala').classList.remove('oculto');
             } else {
-                alert("Nenhum documento encontrado com o termo: " + campo.value);
+                alert("Termo não encontrado.");
                 campo.value = "";
             }
         }
@@ -367,7 +375,7 @@
                 iniciarConexaoChat();
                 iniciarMonitoramentoInatividade();
             } else {
-                alert("Senha da sala incorreta!");
+                alert("Senha incorreta!");
                 inputSala.value = "";
             }
         }
@@ -379,7 +387,6 @@
             }
         });
 
-        // SEGURANÇA POR INATIVIDADE (Ajustado para 2 minutos)
         function bloquearPorInatividade() {
             document.getElementById('telaChat').classList.add('oculto');
             document.getElementById('modalSala').classList.add('oculto');
@@ -479,6 +486,7 @@
                 const base64 = evt.target.result;
                 if (socket && socket.readyState === WebSocket.OPEN) {
                     socket.send(JSON.stringify({ tipo: 'audio', conteudo: base64 }));
+                    exibirMensagem(base64, 'audio', 'mensagem-minha');
                 }
             };
             leitor.readAsDataURL(arquivo);
