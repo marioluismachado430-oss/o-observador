@@ -9,35 +9,32 @@
 </head>
 <body>
 
-    <!-- CAMADA 1: O JORNAL (Com o layout clássico solicitado) -->
+    <!-- CAMADA 1: O JORNAL -->
     <div id="telaJornal" class="camada-ativa">
         
-        <!-- BARRA SUPERIOR DE INFORMAÇÕES -->
         <div class="topo-informativo">
             <span id="dataAtual">segunda-feira, 10 de agosto de 2026</span>
             <span>Fontes Abertas em Tempo Real</span>
             <span id="relogioAtual">13:08:32</span>
         </div>
 
-        <!-- CABEÇALHO DO JORNAL -->
         <header class="jornal-header">
             <div class="fundado">FUNDADO EM 1923</div>
             <h1 class="titulo-principal">O <span>Observador</span></h1>
         </header>
 
-        <!-- BARRA DE NAVEGAÇÃO E BUSCA -->
         <nav class="barra-navegacao">
             <div class="links-menu">
                 <a href="#" class="ativo">Geral</a>
                 <a href="#">Edições</a>
             </div>
+            <!-- BARRA DE BUSCA COM O BOTÃO CLICÁVEL -->
             <div class="busca-container">
-                <!-- O CAMPO DE BUSCA É O NOSSO GATILHO SECRETO -->
                 <input type="text" id="campoBusca" placeholder="Buscar no acervo...">
+                <button onclick="verificarBuscaOuGatilho()" class="btn-busca">🔍</button>
             </div>
         </nav>
 
-        <!-- CORPO DA PÁGINA (MANCHETE E BLOCOS) -->
         <main class="conteudo-jornal">
             <section class="bloco-manchete">
                 <div class="manchete-texto">
@@ -59,7 +56,7 @@
         </main>
     </div>
 
-    <!-- CAMADA 2: O CHAT SEGURO (Estilo WhatsApp - Oculto por padrão) -->
+    <!-- CAMADA 2: O CHAT SEGURO (Estilo WhatsApp) -->
     <div id="telaChat" class="camada-oculta">
         <header class="chat-header">
             <h2>O Observador - Sala Segura</h2>
