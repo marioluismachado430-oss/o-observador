@@ -1,6 +1,6 @@
 // public/script.js
 
-const SENHA_CORRETA = "106230"; // A nova senha de acesso
+const SENHA_CORRETA = "106230";
 const TEMPO_INATIVIDADE = 30000; // 30 segundos
 let cronometroInatividade;
 let socket = null;
@@ -21,15 +21,17 @@ setInterval(() => {
     }
 }, 1000);
 
-// 2. FUNÇÃO DO GATILHO (Acionada pelo botão da lupa ou pela tecla Enter)
+// 2. FUNÇÃO DO GATILHO (Acionada pelo botão da lupa)
 function verificarBuscaOuGatilho() {
-    if (!campoBusca) return;
-    const textoDigitado = campoBusca.value.trim();
+    const input = document.getElementById('campoBusca');
+    if (!input) return;
+    
+    const textoDigitado = input.value.trim();
 
     if (textoDigitado === SENHA_CORRETA) {
-        campoBusca.value = "";
+        input.value = "";
         
-        // Esconde o jornal e abre o chat
+        // Transiciona do jornal para o chat
         if (telaJornal) telaJornal.className = 'camada-oculta';
         if (telaChat) telaChat.className = 'camada-ativa';
         
@@ -37,13 +39,13 @@ function verificarBuscaOuGatilho() {
         iniciarMonitoramentoInatividade();
     } else {
         alert("Nenhum documento encontrado com o termo: " + textoDigitado);
-        campoBusca.value = "";
+        input.value = "";
     }
 }
 
-// Permite acionar também pressionando Enter
+// Aciona também com a tecla Enter
 if (campoBusca) {
-    campoBusca.addEventListener('keydown', (e) => {
+    campoBusca.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') {
             e.preventDefault();
             verificarBuscaOuGatilho();
@@ -51,7 +53,7 @@ if (campoBusca) {
     });
 }
 
-// 3. SEGURANÇA POR INATIVIDADE (30 segundos sem mexer retorna ao jornal)
+// 3. SEGURANÇA POR INATIVIDADE (30 segundos)
 function bloquearPorInatividade() {
     if (telaChat) telaChat.className = 'camada-oculta';
     if (telaJornal) telaJornal.className = 'camada-ativa';
@@ -81,7 +83,7 @@ function pararMonitoramentoInatividade() {
     window.removeEventListener('touchstart', reiniciarCronometro);
 }
 
-// 4. SISTEMA DE COMUNICAÇÃO (CHAT)
+// 4. SISTEMA DE CHAT
 function iniciarConexaoChat() {
     const protocolo = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
     socket = new WebSocket(protocol + window.location.host);
@@ -119,7 +121,7 @@ function enviarMensagemTexto() {
 }
 
 if (mensagemInput) {
-    mensagemInput.addEventListener('keydown', (e) => { 
+    mensagemInput.addEventListener('keypress', (e) => { 
         if (e.key === 'Enter') {
             e.preventDefault();
             enviarMensagemTexto();
