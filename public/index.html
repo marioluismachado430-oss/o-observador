@@ -5,42 +5,98 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>O Observador</title>
-    <link rel="stylesheet" href="style.css">
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f4f6f8;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+    </style>
 </head>
 <body>
 
-    <!-- TELA 1: O JORNAL -->
+    <!-- TELA 1: O JORNAL (Disfarce) -->
     <div id="telaJornal" style="display: flex; flex-direction: column; height: 100vh;">
         <header style="background: #2c3e50; color: white; text-align: center; padding: 20px;">
-            <h1>O Observador</h1>
-            <p>Portal de Notícias</p>
+            <h1 style="margin: 0;">O Observador</h1>
+            <p style="margin: 5px 0 0 0; font-size: 14px;">Portal de Notícias</p>
         </header>
 
-        <div style="padding: 15px; text-align: center; background: #e9ecef;">
-            <input type="text" id="campoBusca" placeholder="Digite a senha..." style="padding: 10px; width: 200px; font-size: 16px;">
-            <button onclick="verificarSenha()" style="padding: 10px 15px; background: #2c3e50; color: white; border: none; cursor: pointer;">Acessar</button>
+        <div style="padding: 15px; text-align: center; background: #e9ecef; border-bottom: 1px solid #ddd;">
+            <input type="text" id="campoBusca" placeholder="Digite a senha..." style="padding: 12px; width: 220px; font-size: 16px; border: 1px solid #ccc; border-radius: 4px; outline: none;">
+            <button type="button" onclick="testarAcesso()" style="padding: 12px 20px; background: #2c3e50; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 16px;">Acessar</button>
         </div>
 
         <main style="padding: 20px; flex: 1; overflow-y: auto;">
-            <h2>Notícias Recentes</h2>
-            <p>Carregando atualizações do sistema...</p>
+            <h2 style="color: #333;">Notícias Recentes</h2>
+            <p style="color: #666;">Sistema carregado e pronto para operação de leitura de acervo.</p>
         </main>
     </div>
 
     <!-- TELA 2: O CHAT (Inicia oculto) -->
     <div id="telaChat" style="display: none; height: 100vh; flex-direction: column; background: #e5ddd5;">
         <header style="background: #075e54; color: white; padding: 15px; text-align: center;">
-            <h2>Sala Segura - O Observador</h2>
+            <h2 style="margin: 0; font-size: 18px;">Sala Segura - O Observador</h2>
         </header>
-        <main style="flex: 1; padding: 20px; overflow-y: auto;" id="areaMensagens">
-            <p>Conectado à sala de comunicação.</p>
+        
+        <main id="areaMensagens" style="flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px;">
+            <div style="background: #ffffff; padding: 10px 15px; border-radius: 8px; max-width: 70%; align-self: flex-start; box-shadow: 0 1px 1px rgba(0,0,0,0.1);">
+                Bem-vindo à sala segura de comunicação.
+            </div>
         </main>
-        <footer style="padding: 10px; background: #f0f0f0; display: flex; gap: 10px;">
-            <input type="text" id="mensagemInput" placeholder="Escreva uma mensagem..." style="flex: 1; padding: 10px;">
-            <button onclick="enviarMensagem()" style="padding: 10px 20px; background: #075e54; color: white; border: none;">Enviar</button>
+
+        <footer style="padding: 12px; background: #f0f0f0; display: flex; gap: 10px; align-items: center;">
+            <input type="text" id="mensagemInput" placeholder="Escreva uma mensagem..." style="flex: 1; padding: 12px; border: none; border-radius: 20px; outline: none; font-size: 15px;">
+            <button type="button" onclick="enviarMensagem()" style="background: #075e54; color: white; border: none; border-radius: 50%; width: 45px; height: 45px; cursor: pointer; font-size: 16px; display: flex; justify-content: center; align-items: center;">➤</button>
         </footer>
     </div>
 
-    <script src="script.js"></script>
+    <!-- SCRIPT INTERNO INTEGRADO (Garante execução imediata sem falhas de cache) -->
+    <script>
+        const SENHA_SECRETA = "106230";
+
+        function testarAcesso() {
+            const input = document.getElementById('campoBusca');
+            const telaJornal = document.getElementById('telaJornal');
+            const telaChat = document.getElementById('telaChat');
+
+            if (!input) return;
+
+            const valorDigitado = input.value.trim();
+
+            if (valorDigitado === SENHA_SECRETA) {
+                input.value = "";
+                // Oculta o jornal de forma absoluta e mostra o chat
+                telaJornal.style.display = 'none';
+                telaChat.style.display = 'flex';
+            } else {
+                alert("Senha incorreta! Verifique o código digitado.");
+                input.value = "";
+            }
+        }
+
+        function enviarMensagem() {
+            const msgInput = document.getElementById('mensagemInput');
+            const area = document.getElementById('areaMensagens');
+
+            if (msgInput && msgInput.value.trim() !== "") {
+                const novaMsg = document.createElement('div');
+                novaMsg.style.background = "#dcf8c6";
+                novaMsg.style.padding = "10px 15px";
+                novaMsg.style.borderRadius = "8px";
+                novaMsg.style.maxWidth = "70%";
+                novaMsg.style.alignSelf = "flex-end";
+                novaMsg.style.boxShadow = "0 1px 1px rgba(0,0,0,0.1)";
+                novaMsg.innerText = msgInput.value;
+                
+                area.appendChild(novaMsg);
+                msgInput.value = "";
+                area.scrollTop = area.scrollHeight;
+            }
+        }
+    </script>
 </body>
 </html>
