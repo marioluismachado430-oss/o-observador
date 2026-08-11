@@ -6,7 +6,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>O Observador</title>
     <style>
-        /* --- ESTILOS GERAIS --- */
         body {
             margin: 0;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -153,12 +152,12 @@
             width: 100%;
         }
 
-        /* --- CAMADA 3: ESTILO DO CHAT (TELEGRAM/WHATSAPP) --- */
+        /* --- CAMADA 3: ESTILO DO CHAT --- */
         #telaChat {
             display: flex;
             flex-direction: column;
             height: 100vh;
-            background-color: #0e1621; /* Tom escuro no estilo Telegram */
+            background-color: #0e1621;
             color: white;
         }
         .chat-header {
@@ -182,7 +181,6 @@
             background-color: #0e1621;
         }
 
-        /* Balões de Mensagem */
         .mensagem {
             max-width: 75%;
             padding: 10px 14px;
@@ -213,7 +211,6 @@
             margin-top: 5px;
         }
 
-        /* Rodapé de Envio */
         .chat-input-area {
             background-color: #17212b;
             padding: 10px 15px;
@@ -271,7 +268,6 @@
                 <a href="#">Edições</a>
             </div>
             
-            <!-- GATILHO SECRETO 1: SENHA MASTER (106230) -->
             <div class="busca-container">
                 <input type="text" id="campoBusca" placeholder="Buscar no acervo..." autocomplete="off">
                 <button type="button" onclick="validarGatilhoMaster()">🔍</button>
@@ -286,7 +282,7 @@
         </main>
     </div>
 
-    <!-- CAMADA 2: MODAL DE ACESSO À SALA (Gatilho Secreto 2) -->
+    <!-- CAMADA 2: MODAL DE ACESSO À SALA -->
     <div id="modalSala" class="oculto">
         <div class="caixa-modal">
             <h3>Autenticação de Sala</h3>
@@ -296,7 +292,7 @@
         </div>
     </div>
 
-    <!-- CAMADA 3: SALA DE CHAT ESTILO TELEGRAM -->
+    <!-- CAMADA 3: SALA DE CHAT -->
     <div id="telaChat" class="oculto">
         <header class="chat-header">
             <div>
@@ -312,44 +308,37 @@
         </main>
 
         <footer class="chat-input-area">
-            <!-- Inputs Ocultos de Mídia -->
             <input type="file" id="fotoInput" style="display: none;" accept="image/*">
             <input type="file" id="audioInput" style="display: none;" accept="audio/*">
 
-            <!-- Botões de Anexo -->
             <button type="button" class="btn-acao" onclick="document.getElementById('fotoInput').click()" title="Enviar Foto">📷</button>
             <button type="button" class="btn-acao" onclick="document.getElementById('audioInput').click()" title="Enviar Áudio">🎵</button>
             
-            <!-- Entrada de Texto -->
             <input type="text" id="mensagemInput" placeholder="Escreva uma mensagem...">
             <button type="button" class="btn-acao btn-enviar" onclick="enviarMensagemTexto()">➤</button>
         </footer>
     </div>
 
-    <!-- LÓGICA COMPLETA DE PROGRAMAÇÃO -->
+    <!-- LÓGICA DE PROGRAMAÇÃO -->
     <script>
-        // CONFIGURAÇÃO DAS SENHAS
-        const SENHA_MASTER = "106230"; // Senha do campo de busca do jornal
-        const SENHA_SALA = "sala123";  // Senha da Sala de Bate-Papo
-        const TEMPO_INATIVIDADE = 30000; // 30 segundos de inatividade
+        const SENHA_MASTER = "106230";
+        const SENHA_SALA = "sala123";  
+        const TEMPO_INATIVIDADE = 120000; // Alterado para 2 minutos (120 segundos) de tolerância
 
         let cronometroInatividade;
         let socket = null;
 
-        // 1. RELÓGIO EM TEMPO REAL
         setInterval(() => {
             const relogio = document.getElementById('relogioAtual');
             if (relogio) relogio.innerText = new Date().toLocaleTimeString('pt-BR');
         }, 1000);
 
-        // 2. VALIDAÇÃO DA SENHA MASTER (Etapa 1)
         function validarGatilhoMaster() {
             const campo = document.getElementById('campoBusca');
             if (!campo) return;
 
             if (campo.value.trim() === SENHA_MASTER) {
                 campo.value = "";
-                // Exibe o modal de senha da sala
                 document.getElementById('modalSala').classList.remove('oculto');
             } else {
                 alert("Nenhum documento encontrado com o termo: " + campo.value);
@@ -357,7 +346,6 @@
             }
         }
 
-        // Permite apertar Enter no campo de busca do jornal
         document.getElementById('campoBusca').addEventListener('keydown', (e) => {
             if (e.key === 'Enter') {
                 e.preventDefault();
@@ -365,7 +353,6 @@
             }
         });
 
-        // 3. VALIDAÇÃO DA SENHA DA SALA (Etapa 2)
         function validarSenhaSala() {
             const inputSala = document.getElementById('senhaSalaInput');
             if (!inputSala) return;
@@ -373,12 +360,10 @@
             if (inputSala.value.trim() === SENHA_SALA) {
                 inputSala.value = "";
                 
-                // Transição de telas: Esconde Jornal e Modal, exibe Chat
                 document.getElementById('modalSala').classList.add('oculto');
                 document.getElementById('telaJornal').classList.add('oculto');
                 document.getElementById('telaChat').classList.remove('oculto');
 
-                // Conecta a rede e inicia o temporizador de segurança
                 iniciarConexaoChat();
                 iniciarMonitoramentoInatividade();
             } else {
@@ -387,7 +372,6 @@
             }
         }
 
-        // Permite apertar Enter no modal da sala
         document.getElementById('senhaSalaInput').addEventListener('keydown', (e) => {
             if (e.key === 'Enter') {
                 e.preventDefault();
@@ -395,7 +379,7 @@
             }
         });
 
-        // 4. SEGURANÇA POR INATIVIDADE (30 Segundos)
+        // SEGURANÇA POR INATIVIDADE (Ajustado para 2 minutos)
         function bloquearPorInatividade() {
             document.getElementById('telaChat').classList.add('oculto');
             document.getElementById('modalSala').classList.add('oculto');
@@ -426,7 +410,6 @@
             window.removeEventListener('touchstart', reiniciarCronometro);
         }
 
-        // 5. CONEXÃO WEBSOCKET EM TEMPO REAL
         function iniciarConexaoChat() {
             const protocolo = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
             socket = new WebSocket(protocolo + window.location.host);
@@ -453,7 +436,6 @@
             };
         }
 
-        // 6. ENVIAR MENSAGENS DE TEXTO
         function enviarMensagemTexto() {
             const input = document.getElementById('mensagemInput');
             const texto = input.value.trim();
@@ -472,7 +454,6 @@
             }
         });
 
-        // 7. ENVIAR FOTOS / IMAGENS
         document.getElementById('fotoInput').addEventListener('change', function(e) {
             const arquivo = e.target.files[0];
             if (!arquivo) return;
@@ -489,7 +470,6 @@
             this.value = "";
         });
 
-        // 8. ENVIAR ÁUDIOS
         document.getElementById('audioInput').addEventListener('change', function(e) {
             const arquivo = e.target.files[0];
             if (!arquivo) return;
@@ -499,14 +479,12 @@
                 const base64 = evt.target.result;
                 if (socket && socket.readyState === WebSocket.OPEN) {
                     socket.send(JSON.stringify({ tipo: 'audio', conteudo: base64 }));
-                    exibirMensagem(base64, 'audio', 'mensagem-minha');
                 }
             };
             leitor.readAsDataURL(arquivo);
             this.value = "";
         });
 
-        // 9. EXIBIR MENSAGENS NA TELA
         function exibirMensagem(conteudo, tipo, classeCSS) {
             const area = document.getElementById('areaMensagens');
             const balao = document.createElement('div');
