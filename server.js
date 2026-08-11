@@ -1,60 +1,59 @@
-// --- BACKEND DO SERVIDOR (server.js) ---
-
-// 1. Importação das ferramentas necessárias
+// server.js - Servidor com Histórico Persistente (Estilo WhatsApp)
 const express = require('express');
-const path = require('path');
-const http = require('http'); // Necessário para integrar páginas e mensagens
-const { WebSocketServer } = require('ws'); // O motor de comunicação em tempo real
+const http = require('http');
+const WebSocket = require('ws');
 
 const app = express();
+const servidor = http.createServer(app);
+const wss = new WebSocket.Server({ server: servidor });
 
-// 2. Configuração do servidor visual (Interface e Segurança)
-// Define que todos os arquivos visuais estão na pasta 'public'
-app.use(express.static(path.join(__dirname, 'public')));
+// Array para guardar o histórico de mensagens enquanto o servidor estiver ativo
+let historicoMensagens = [];
 
-// Quando acederem à página, entrega o index.html com o bloqueio de senha
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
-
-// 3. Criação do servidor HTTP base
-// Este servidor vai suportar tanto o Express quanto os WebSockets na mesma porta
-const server = http.createServer(app);
-
-// 4. Configuração do Servidor de Mensagens (O Observador)
-const wss = new WebSocketServer({ server });
-const salas = {}; // Prepara a estrutura para guardar as conexões (salas)
+// Disponibiliza os ficheiros da pasta 'public'
+app.use(express.static('public'));
 
 wss.on('connection', (ws) => {
-    console.log('[O OBSERVADOR] Novo utilizador conectado ao sistema de comunicação.');
+    console.log('Novo dispositivo conectado. A enviar histórico...');
 
-    // O que acontece quando o servidor recebe uma mensagem
-    ws.on('message', (message) => {
-        try {
-            // Converte a mensagem recebida (em formato de texto/buffer) para o formato JSON
-            const dados = JSON.parse(message);
-            
-            // Retransmite a mensagem para todos os outros utilizadores conectados
-            wss.clients.forEach((cliente) => {
-                // Verifica se o cliente não é quem enviou e se a conexão dele está aberta (readyState === 1)
-                if (cliente !== ws && cliente.readyState === 1) { 
-                    cliente.send(JSON.stringify(dados));
-                }
-            });
-
-        } catch (erro) {
-            console.error("[ERRO] Falha ao processar a mensagem:", erro);
+    // 1. Envia todo o histórico armazenado para o novo cliente assim que ele se conecta
+    historicoMensagens.forEach((msgAntiga) => {
+        if (ws.readyState === WebSocket.OPEN) {
+            ws.send(JSON.stringify(msgAntiga));
         }
     });
 
-    // O que acontece quando alguém sai do aplicativo
+    // 2. Ouve novas mensagens enviadas por qualquer cliente
+    ws.on('message', (dadosBrutos) => {
+        try {
+            const mensagemObj = JSON.parse(dadosBrutos);
+            
+            // Guarda a mensagem no histórico do servidor
+            historicoMensagens.push(mensagemObj);
+
+            // Limita o histórico às últimas 100 mensagens para poupar memória do servidor
+            if (historicoMensagens.length > 100) {
+                historicoMensagens.shift();
+            }
+
+            // Retransmite a mensagem para todos os *outros* clientes conectados em tempo real
+            wss.clients.forEach((cliente) => {
+                if (cliente !== ws && cliente.readyState === WebSocket.OPEN) {
+                    cliente.send(JSON.stringify(mensagemObj));
+                }
+            });
+        } catch (erro) {
+            console.error("Erro ao processar mensagem:", erro);
+        }
+    });
+
     ws.on('close', () => {
-        console.log('[O OBSERVADOR] Um utilizador desconectou.');
+        console.log('Dispositivo desconectado.');
     });
 });
 
-// 5. Configuração da Porta para o Render (0.0.0.0 evita a desconexão por inatividade de IP)
-const PORT = process.env.PORT || 10000;
-server.listen(PORT, '0.0.0.0', () => {
-    console.log(`[O OBSERVADOR] Sistema online na porta ${PORT}. Servindo páginas e recebendo mensagens!`);
+// Inicialização da porta para o Render
+const PORTA = process.env.PORTA || process.env.PORT || 3000;
+servidor.listen(PORTA, () => {
+    console.log(`Servidor a correr na porta ${PORTA}`);
 });
