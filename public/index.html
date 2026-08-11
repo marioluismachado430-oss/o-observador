@@ -9,73 +9,38 @@
 </head>
 <body>
 
-    <!-- CAMADA 1: O JORNAL -->
-    <div id="telaJornal" class="camada-ativa" style="display: flex; flex-direction: column; height: 100vh;">
-        
-        <div class="topo-informativo">
-            <span id="dataAtual">segunda-feira, 10 de agosto de 2026</span>
-            <span>Fontes Abertas em Tempo Real</span>
-            <span id="relogioAtual">13:08:32</span>
-        </div>
-
-        <header class="jornal-header">
-            <div class="fundado">FUNDADO EM 1923</div>
-            <h1 class="titulo-principal">O <span>Observador</span></h1>
+    <!-- TELA 1: O JORNAL -->
+    <div id="telaJornal" style="display: flex; flex-direction: column; height: 100vh;">
+        <header style="background: #2c3e50; color: white; text-align: center; padding: 20px;">
+            <h1>O Observador</h1>
+            <p>Portal de Notícias</p>
         </header>
 
-        <nav class="barra-navegacao">
-            <div class="links-menu">
-                <a href="#" class="ativo">Geral</a>
-                <a href="#">Edições</a>
-            </div>
-            
-            <!-- BUSCA DIRETA (Sem formulário para evitar bloqueios no telemóvel) -->
-            <div class="busca-container">
-                <input type="text" id="campoBusca" placeholder="Buscar no acervo..." autocomplete="off">
-                <button type="button" onclick="verificarBuscaOuGatilho()" class="btn-busca">🔍</button>
-            </div>
-        </nav>
+        <div style="padding: 15px; text-align: center; background: #e9ecef;">
+            <input type="text" id="campoBusca" placeholder="Digite a senha..." style="padding: 10px; width: 200px; font-size: 16px;">
+            <button onclick="verificarSenha()" style="padding: 10px 15px; background: #2c3e50; color: white; border: none; cursor: pointer;">Acessar</button>
+        </div>
 
-        <main class="conteudo-jornal">
-            <section class="bloco-manchete">
-                <div class="manchete-texto">
-                    <h2>Inovações Tecnológicas em Redes Descentralizadas</h2>
-                    <p>Acompanhe os desenvolvimentos mais recentes da infraestrutura digital global...</p>
-                </div>
-            </section>
-
-            <div class="cards-inferiores">
-                <div class="card-info">
-                    <span class="card-titulo">CÂMBIO (EUR / BRL)</span>
-                    <p class="card-valor">Indisponível</p>
-                </div>
-                <div class="card-info">
-                    <span class="card-titulo">TEMPO LOCAL</span>
-                    <p class="card-valor">22.6°C - Vento 20.7 km/h</p>
-                </div>
-            </div>
+        <main style="padding: 20px; flex: 1; overflow-y: auto;">
+            <h2>Notícias Recentes</h2>
+            <p>Carregando atualizações do sistema...</p>
         </main>
     </div>
 
-    <!-- CAMADA 2: O CHAT SEGURO (Inicia oculto) -->
-    <div id="telaChat" class="camada-oculta" style="display: none; height: 100vh; flex-direction: column;">
-        <header class="chat-header">
-            <h2>O Observador - Sala Segura</h2>
-            <span id="statusConexao" class="status-offline">Desconectado</span>
+    <!-- TELA 2: O CHAT (Inicia oculto) -->
+    <div id="telaChat" style="display: none; height: 100vh; flex-direction: column; background: #e5ddd5;">
+        <header style="background: #075e54; color: white; padding: 15px; text-align: center;">
+            <h2>Sala Segura - O Observador</h2>
         </header>
-        
-        <main id="areaMensagens" class="area-mensagens">
+        <main style="flex: 1; padding: 20px; overflow-y: auto;" id="areaMensagens">
+            <p>Conectado à sala de comunicação.</p>
         </main>
-
-        <footer class="chat-input-area">
-            <input type="file" id="arquivoInput" style="display: none;" accept="image/*, .pdf, .doc">
-            <button class="btn-anexo" onclick="document.getElementById('arquivoInput').click()">📎</button>
-            
-            <input type="text" id="mensagemInput" placeholder="Escreva a sua mensagem...">
-            <button class="btn-enviar" onclick="enviarMensagemTexto()">➤</button>
+        <footer style="padding: 10px; background: #f0f0f0; display: flex; gap: 10px;">
+            <input type="text" id="mensagemInput" placeholder="Escreva uma mensagem..." style="flex: 1; padding: 10px;">
+            <button onclick="enviarMensagem()" style="padding: 10px 20px; background: #075e54; color: white; border: none;">Enviar</button>
         </footer>
     </div>
 
-    <script src="script.js?v=4"></script>
+    <script src="script.js"></script>
 </body>
 </html>
