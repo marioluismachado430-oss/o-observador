@@ -10,7 +10,7 @@
 <body>
 
     <!-- CAMADA 1: O JORNAL -->
-    <div id="telaJornal" class="camada-ativa">
+    <div id="telaJornal" class="camada-ativa" style="display: flex; flex-direction: column; height: 100vh;">
         
         <div class="topo-informativo">
             <span id="dataAtual">segunda-feira, 10 de agosto de 2026</span>
@@ -29,11 +29,11 @@
                 <a href="#">Edições</a>
             </div>
             
-            <!-- FORMULÁRIO DE BUSCA: Garante funcionamento nativo no tablet -->
-            <form id="formBusca" class="busca-container" onsubmit="verificarBuscaOuGatilho(event)">
+            <!-- BUSCA DIRETA (Sem formulário para evitar bloqueios no telemóvel) -->
+            <div class="busca-container">
                 <input type="text" id="campoBusca" placeholder="Buscar no acervo..." autocomplete="off">
-                <button type="submit" class="btn-busca">🔍</button>
-            </form>
+                <button type="button" onclick="verificarBuscaOuGatilho()" class="btn-busca">🔍</button>
+            </div>
         </nav>
 
         <main class="conteudo-jornal">
@@ -57,8 +57,8 @@
         </main>
     </div>
 
-    <!-- CAMADA 2: O CHAT SEGURO -->
-    <div id="telaChat" class="camada-oculta">
+    <!-- CAMADA 2: O CHAT SEGURO (Inicia oculto) -->
+    <div id="telaChat" class="camada-oculta" style="display: none; height: 100vh; flex-direction: column;">
         <header class="chat-header">
             <h2>O Observador - Sala Segura</h2>
             <span id="statusConexao" class="status-offline">Desconectado</span>
@@ -76,6 +76,6 @@
         </footer>
     </div>
 
-    <script src="script.js?v=3"></script>
+    <script src="script.js?v=4"></script>
 </body>
 </html>
