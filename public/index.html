@@ -155,7 +155,7 @@
             width: 100%;
         }
 
-        /* --- CAMADA 3: ESTILO DO CHAT (MOBILE BLINDADO) --- */
+        /* --- CAMADA 3: ESTILO DO CHAT --- */
         #telaChat {
             position: relative;
             width: 100%;
@@ -219,7 +219,6 @@
             margin-top: 4px;
         }
 
-        /* RODAPÉ DO CHAT FIXO NA BASE */
         .chat-input-area {
             position: sticky;
             bottom: 0;
@@ -378,7 +377,7 @@
         </footer>
     </div>
 
-    <!-- LÓGICA DE PROGRAMAÇÃO -->
+    <!-- LÓGICA DE PROGRAMAÇÃO COM RECONEXÃO AUTOMÁTICA -->
     <script>
         const SENHA_MASTER = "106230";
         const SENHA_SALA = "sala123";  
@@ -471,6 +470,7 @@
             window.removeEventListener('touchstart', reiniciarCronometro);
         }
 
+        // Sistema de Conexão WebSocket com Reconexão Automática para Telemóveis
         function iniciarConexaoChat() {
             const protocolo = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
             socket = new WebSocket(protocolo + window.location.host);
@@ -486,9 +486,11 @@
             socket.onclose = () => {
                 const status = document.getElementById('statusConexao');
                 if (status) {
-                    status.innerText = "Desconectado";
+                    status.innerText = "Reconectando...";
                     status.className = "status-offline";
                 }
+                // Tenta reconectar automaticamente após 3 segundos se cair
+                setTimeout(iniciarConexaoChat, 3000);
             };
 
             socket.onmessage = (evento) => {
