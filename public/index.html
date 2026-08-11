@@ -154,7 +154,7 @@
             width: 100%;
         }
 
-        /* --- CAMADA 3: ESTILO DO CHAT (MOBILE FRIENDLY) --- */
+        /* --- CAMADA 3: ESTILO DO CHAT --- */
         #telaChat {
             display: flex;
             flex-direction: column;
@@ -214,22 +214,23 @@
             margin-top: 4px;
         }
 
-        /* Rodapé de Envio Otimizado para Telemóvel */
+        /* RODAPÉ DO CHAT */
         .chat-input-area {
             background-color: #17212b;
-            padding: 8px 10px;
+            padding: 10px;
             display: flex;
-            gap: 6px;
+            gap: 8px;
             align-items: center;
             width: 100%;
+            flex-shrink: 0;
         }
         .chat-input-area input[type="text"] {
             flex: 1;
-            min-width: 0;
-            padding: 10px 12px;
+            width: 0;
+            padding: 10px 14px;
             border: none;
             border-radius: 20px;
-            font-size: 14px;
+            font-size: 15px;
             outline: none;
             background-color: #242f3d;
             color: white;
@@ -239,19 +240,57 @@
             color: #40b3e0;
             border: none;
             border-radius: 50%;
-            width: 38px;
-            height: 38px;
-            min-width: 38px;
+            width: 40px;
+            height: 40px;
+            min-width: 40px;
             font-size: 16px;
             cursor: pointer;
             display: flex;
             justify-content: center;
             align-items: center;
+            flex-shrink: 0;
         }
         .btn-enviar {
             background-color: #5288c1;
             color: white;
         }
+        /* Estilo visual para gravação de áudio ativa */
+        .gravando {
+            background-color: #e74c3c !important;
+            color: white !important;
+            animation: pulsar 1.5s infinite;
+        }
+        @keyframes pulsar {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        /* Menu de Opções de Imagem (Popup) */
+        #menuFoto {
+            position: fixed;
+            bottom: 70px;
+            left: 15px;
+            background: #17212b;
+            border: 1px solid #242f3d;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            z-index: 2000;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+        }
+        #menuFoto button {
+            background: none;
+            border: none;
+            color: white;
+            padding: 12px 20px;
+            text-align: left;
+            font-size: 14px;
+            cursor: pointer;
+            border-bottom: 1px solid #242f3d;
+        }
+        #menuFoto button:last-child { border-bottom: none; }
+        #menuFoto button:hover { background: #242f3d; }
     </style>
 </head>
 <body>
@@ -315,12 +354,19 @@
         </main>
 
         <footer class="chat-input-area">
-            <!-- Inputs corrigidos para aceitar arquivos diretamente sem forçar gravadores externos nativos -->
-            <input type="file" id="fotoInput" style="display: none;" accept="image/*">
-            <input type="file" id="audioInput" style="display: none;" accept="audio/*">
+            <!-- Inputs ocultos para Câmara e Galeria -->
+            <input type="file" id="cameraInput" style="display: none;" accept="image/*" capture="environment">
+            <input type="file" id="galeriaInput" style="display: none;" accept="image/*">
 
-            <button type="button" class="btn-acao" onclick="document.getElementById('fotoInput').click()" title="Enviar Foto">📷</button>
-            <button type="button" class="btn-acao" onclick="document.getElementById('audioInput').click()" title="Enviar Áudio">🎵</button>
+            <!-- Menu de Opções de Foto (Aparece ao clicar na câmara) -->
+            <div id="menuFoto" class="oculto">
+                <button type="button" onclick="abrirCamera()">📷 Tirar Foto</button>
+                <button type="button" onclick="abrirGaleria()">🖼️ Escolher da Galeria</button>
+            </div>
+
+            <!-- Botões de Ação -->
+            <button type="button" class="btn-acao" onclick="toggleMenuFoto()" title="Enviar Imagem">📷</button>
+            <button type="button" id="btnAudio" class="btn-acao" onclick="toggleGravacaoAudio()" title="Gravar Áudio">🎤</button>
             
             <input type="text" id="mensagemInput" placeholder="Mensagem...">
             <button type="button" class="btn-acao btn-enviar" onclick="enviarMensagemTexto()">➤</button>
@@ -335,6 +381,9 @@
 
         let cronometroInatividade;
         let socket = null;
+        let mediaRecorder = null;
+        let pedacosAudio = [];
+        let gravandoAudio = false;
 
         setInterval(() => {
             const relogio = document.getElementById('relogioAtual');
@@ -461,7 +510,24 @@
             }
         });
 
-        document.getElementById('fotoInput').addEventListener('change', function(e) {
+        // --- CONTROLO DO MENU DE FOTOS ---
+        function toggleMenuFoto() {
+            const menu = document.getElementById('menuFoto');
+            menu.classList.toggle('oculto');
+        }
+
+        function abrirCamera() {
+            document.getElementById('menuFoto').classList.add('oculto');
+            document.getElementById('cameraInput').click();
+        }
+
+        function abrirGaleria() {
+            document.getElementById('menuFoto').classList.add('oculto');
+            document.getElementById('galeriaInput').click();
+        }
+
+        // Processar Imagem da Câmara ou Galeria
+        function processarArquivoImagem(e) {
             const arquivo = e.target.files[0];
             if (!arquivo) return;
 
@@ -475,24 +541,59 @@
             };
             leitor.readAsDataURL(arquivo);
             this.value = "";
-        });
+        }
 
-        document.getElementById('audioInput').addEventListener('change', function(e) {
-            const arquivo = e.target.files[0];
-            if (!arquivo) return;
+        document.getElementById('cameraInput').addEventListener('change', processarArquivoImagem);
+        document.getElementById('galeriaInput').addEventListener('change', processarArquivoImagem);
 
-            const leitor = new FileReader();
-            leitor.onload = function(evt) {
-                const base64 = evt.target.result;
-                if (socket && socket.readyState === WebSocket.OPEN) {
-                    socket.send(JSON.stringify({ tipo: 'audio', conteudo: base64 }));
-                    exibirMensagem(base64, 'audio', 'mensagem-minha');
+        // --- SISTEMA DE GRAVAÇÃO DE ÁUDIO ESTILO WHATSAPP ---
+        async function toggleGravacaoAudio() {
+            const btnAudio = document.getElementById('btnAudio');
+
+            if (!gravandoAudio) {
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    mediaRecorder = new MediaRecorder(stream);
+                    pedacosAudio = [];
+
+                    mediaRecorder.ondataavailable = (e) => {
+                        if (e.data.size > 0) pedacosAudio.push(e.data);
+                    };
+
+                    mediaRecorder.onstop = () => {
+                        const blobAudio = new Blob(pedacosAudio, { type: 'audio/webm' });
+                        const leitor = new FileReader();
+                        leitor.onload = function(evt) {
+                            const base64Audio = evt.target.result;
+                            if (socket && socket.readyState === WebSocket.OPEN) {
+                                socket.send(JSON.stringify({ tipo: 'audio', conteudo: base64Audio }));
+                                exibirMensagem(base64Audio, 'audio', 'mensagem-minha');
+                            }
+                        };
+                        leitor.readAsDataURL(blobAudio);
+                        
+                        // Parar as faixas do microfone
+                        stream.getTracks().forEach(track => track.stop());
+                    };
+
+                    mediaRecorder.start();
+                    gravandoAudio = true;
+                    btnAudio.classList.add('gravando');
+                    btnAudio.innerText = "⏹️"; // Botão muda para parar
+                } catch (err) {
+                    alert("Erro ao aceder ao microfone. Verifique as permissões do navegador.");
                 }
-            };
-            leitor.readAsDataURL(arquivo);
-            this.value = "";
-        });
+            } else {
+                if (mediaRecorder && mediaRecorder.state !== "inactive") {
+                    mediaRecorder.stop();
+                }
+                gravandoAudio = false;
+                btnAudio.classList.remove('gravando');
+                btnAudio.innerText = "🎤"; // Retorna ao ícone normal
+            }
+        }
 
+        // --- EXIBIÇÃO DE MENSAGENS ---
         function exibirMensagem(conteudo, tipo, classeCSS) {
             const area = document.getElementById('areaMensagens');
             const balao = document.createElement('div');
