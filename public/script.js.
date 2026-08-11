@@ -1,11 +1,11 @@
 // public/script.js - O Observador
 
-const SENHA_CORRETA = "106230"; // A senha de acesso estabelecida
-const TEMPO_INATIVIDADE = 30000; // 30 segundos de inatividade para bloquear
+const SENHA_CORRETA = "106230"; // Senha de acesso ao chat
+const TEMPO_INATIVIDADE = 30000; // 30 segundos para bloqueio por inatividade
 let cronometroInatividade;
 let socket = null;
 
-// Elementos principais da interface
+// Elementos principais capturados do HTML
 const telaJornal = document.getElementById('telaJornal');
 const telaChat = document.getElementById('telaChat');
 const campoBusca = document.getElementById('campoBusca');
@@ -22,25 +22,25 @@ setInterval(() => {
     }
 }, 1000);
 
-// 2. FUNÇÃO DO GATILHO VIA FORMULÁRIO (Disparada pelo botão da lupa ou Enter)
+// 2. FUNÇÃO DO GATILHO (Disparada pelo formulário/lupa ou Enter)
 function verificarBuscaOuGatilho(evento) {
-    if (evento) evento.preventDefault(); // Evita o recarregamento da página
+    if (evento) evento.preventDefault(); // Impede o recarregamento da página
 
     const input = document.getElementById('campoBusca');
     if (!input) return;
     
     const textoDigitado = input.value.trim();
 
-    // Validação da senha secreta
+    // Validação estrita da senha secreta
     if (textoDigitado === SENHA_CORRETA) {
         input.value = ""; // Limpa o campo de busca
         
-        // Altera as classes CSS para ocultar o jornal e mostrar o chat
+        // Transição forçada por estilo inline (garante que funciona em qualquer navegador de tablet)
         if (telaJornal) {
-            telaJornal.className = 'camada-oculta';
+            telaJornal.style.display = 'none';
         }
         if (telaChat) {
-            telaChat.className = 'camada-ativa';
+            telaChat.style.display = 'flex';
         }
         
         iniciarConexaoChat();
@@ -54,10 +54,10 @@ function verificarBuscaOuGatilho(evento) {
 // 3. SEGURANÇA POR INATIVIDADE (30 segundos sem interagir retorna ao jornal)
 function bloquearPorInatividade() {
     if (telaChat) {
-        telaChat.className = 'camada-oculta';
+        telaChat.style.display = 'none';
     }
     if (telaJornal) {
-        telaJornal.className = 'camada-ativa';
+        telaJornal.style.display = 'flex';
     }
     
     if (socket) socket.close();
