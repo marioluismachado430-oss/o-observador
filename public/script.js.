@@ -1,176 +1,42 @@
-// public/script.js - O Observador
+// public/script.js
 
-const SENHA_CORRETA = "106230"; // Senha de acesso ao chat
-const TEMPO_INATIVIDADE = 30000; // 30 segundos para bloqueio por inatividade
-let cronometroInatividade;
-let socket = null;
+const SENHA_SECRETA = "106230";
 
-// Elementos principais capturados do HTML
-const telaJornal = document.getElementById('telaJornal');
-const telaChat = document.getElementById('telaChat');
-const campoBusca = document.getElementById('campoBusca');
-const relogioAtual = document.getElementById('relogioAtual');
-const areaMensagens = document.getElementById('areaMensagens');
-const mensagemInput = document.getElementById('mensagemInput');
-const arquivoInput = document.getElementById('arquivoInput');
-
-// 1. RELÓGIO EM TEMPO REAL NO TOPO DO JORNAL
-setInterval(() => {
-    const agora = new Date();
-    if (relogioAtual) {
-        relogioAtual.innerText = agora.toLocaleTimeString('pt-BR');
-    }
-}, 1000);
-
-// 2. FUNÇÃO DO GATILHO (Disparada pelo formulário/lupa ou Enter)
-function verificarBuscaOuGatilho(evento) {
-    if (evento) evento.preventDefault(); // Impede o recarregamento da página
-
+function verificarSenha() {
     const input = document.getElementById('campoBusca');
-    if (!input) return;
-    
-    const textoDigitado = input.value.trim();
+    const telaJornal = document.getElementById('telaJornal');
+    const telaChat = document.getElementById('telaChat');
 
-    // Validação estrita da senha secreta
-    if (textoDigitado === SENHA_CORRETA) {
-        input.value = ""; // Limpa o campo de busca
-        
-        // Transição forçada por estilo inline (garante que funciona em qualquer navegador de tablet)
-        if (telaJornal) {
-            telaJornal.style.display = 'none';
-        }
-        if (telaChat) {
-            telaChat.style.display = 'flex';
-        }
-        
-        iniciarConexaoChat();
-        iniciarMonitoramentoInatividade();
+    if (!input) return;
+
+    const valorDigitado = input.value.trim();
+
+    if (valorDigitado === SENHA_SECRETA) {
+        input.value = "";
+        // Oculta o jornal e mostra o chat de forma direta e forçada
+        telaJornal.style.display = 'none';
+        telaChat.style.display = 'flex';
     } else {
-        alert("Nenhum documento encontrado com o termo: " + textoDigitado);
+        alert("Senha incorreta!");
         input.value = "";
     }
 }
 
-// 3. SEGURANÇA POR INATIVIDADE (30 segundos sem interagir retorna ao jornal)
-function bloquearPorInatividade() {
-    if (telaChat) {
-        telaChat.style.display = 'none';
-    }
-    if (telaJornal) {
-        telaJornal.style.display = 'flex';
-    }
-    
-    if (socket) socket.close();
-    pararMonitoramentoInatividade();
-}
+function enviarMensagem() {
+    const msgInput = document.getElementById('mensagemInput');
+    const area = document.getElementById('areaMensagens');
 
-function reiniciarCronometro() {
-    clearTimeout(cronometroInatividade);
-    cronometroInatividade = setTimeout(bloquearPorInatividade, TEMPO_INATIVIDADE);
-}
-
-function iniciarMonitoramentoInatividade() {
-    reiniciarCronometro();
-    window.addEventListener('mousemove', reiniciarCronometro);
-    window.addEventListener('keypress', reiniciarCronometro);
-    window.addEventListener('click', reiniciarCronometro);
-    window.addEventListener('touchstart', reiniciarCronometro);
-}
-
-function pararMonitoramentoInatividade() {
-    clearTimeout(cronometroInatividade);
-    window.removeEventListener('mousemove', reiniciarCronometro);
-    window.removeEventListener('keypress', reiniciarCronometro);
-    window.removeEventListener('click', reiniciarCronometro);
-    window.removeEventListener('touchstart', reiniciarCronometro);
-}
-
-// 4. SISTEMA DE COMUNICAÇÃO (CHAT VIA WEBSOCKET)
-function iniciarConexaoChat() {
-    const protocolo = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
-    socket = new WebSocket(protocol + window.location.host);
-
-    socket.onopen = () => { 
-        const status = document.getElementById('statusConexao');
-        if (status) {
-            status.innerText = "Online"; 
-            status.className = "status-online";
-        }
-    };
-    
-    socket.onclose = () => { 
-        const status = document.getElementById('statusConexao');
-        if (status) {
-            status.innerText = "Desconectado"; 
-            status.className = "status-offline";
-        }
-    };
-
-    socket.onmessage = (evento) => {
-        const dados = JSON.parse(evento.data);
-        exibirMensagem(dados.conteudo, dados.tipo, 'mensagem-outros');
-    };
-}
-
-function enviarMensagemTexto() {
-    if (!mensagemInput) return;
-    const texto = mensagemInput.value.trim();
-    if (texto !== "" && socket && socket.readyState === WebSocket.OPEN) {
-        socket.send(JSON.stringify({ tipo: 'texto', conteudo: texto }));
-        exibirMensagem(texto, 'texto', 'mensagem-minha');
-        mensagemInput.value = "";
-    }
-}
-
-if (mensagemInput) {
-    mensagemInput.addEventListener('keydown', (e) => { 
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            enviarMensagemTexto();
-        }
-    });
-}
-
-if (arquivoInput) {
-    arquivoInput.addEventListener('change', function(evento) {
-        const arquivo = evento.target.files[0];
-        if (!arquivo) return;
-
-        const leitor = new FileReader();
-        leitor.onload = function(e) {
-            const dadosBase64 = e.target.result;
-            let tipoMensagem = arquivo.type.startsWith('image/') ? 'imagem' : 'arquivo';
-
-            if (socket && socket.readyState === WebSocket.OPEN) {
-                socket.send(JSON.stringify({ tipo: tipoMensagem, conteudo: dadosBase64 }));
-                exibirMensagem(dadosBase64, tipoMensagem, 'mensagem-minha');
-            }
-        };
-        leitor.readAsDataURL(arquivo);
-        arquivoInput.value = ""; 
-    });
-}
-
-function exibirMensagem(conteudo, tipo, classeCSS) {
-    const balao = document.createElement('div');
-    balao.classList.add('mensagem', classeCSS);
-
-    if (tipo === 'texto') { 
-        balao.innerText = conteudo; 
-    } else if (tipo === 'imagem') { 
-        const img = document.createElement('img'); 
-        img.src = conteudo; 
-        balao.appendChild(img); 
-    } else if (tipo === 'arquivo') { 
-        const link = document.createElement('a'); 
-        link.href = conteudo; 
-        link.download = "arquivo_recebido"; 
-        link.innerText = "📁 Baixar"; 
-        balao.appendChild(link); 
-    }
-
-    if (areaMensagens) {
-        areaMensagens.appendChild(balao);
-        areaMensagens.scrollTop = areaMensagens.scrollHeight; 
+    if (msgInput && msgInput.value.trim() !== "") {
+        const novaMsg = document.createElement('div');
+        novaMsg.style.background = "#dcf8c6";
+        novaMsg.style.padding = "8px 12px";
+        novaMsg.style.margin = "5px 0";
+        novaMsg.style.borderRadius = "5px";
+        novaMsg.style.maxWidth = "70%";
+        novaMsg.style.alignSelf = "flex-end";
+        novaMsg.innerText = msgInput.value;
+        
+        area.appendChild(novaMsg);
+        msgInput.value = "";
     }
 }
