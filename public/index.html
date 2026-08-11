@@ -6,96 +6,527 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>O Observador</title>
     <style>
+        /* --- ESTILOS GERAIS --- */
         body {
             margin: 0;
-            font-family: Arial, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: #f4f6f8;
+            color: #222;
             height: 100vh;
             display: flex;
             flex-direction: column;
+            overflow: hidden;
+        }
+
+        .oculto { display: none !important; }
+
+        /* --- CAMADA 1: DESIGN DO JORNAL --- */
+        #telaJornal {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            background-color: #f4f6f8;
+        }
+
+        .topo-informativo {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 20px;
+            font-size: 11px;
+            color: #666;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .jornal-header {
+            text-align: center;
+            padding: 15px 20px 5px 20px;
+        }
+        .fundado {
+            font-size: 10px;
+            letter-spacing: 2px;
+            color: #555;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+        .titulo-principal {
+            font-family: 'Georgia', serif;
+            font-size: 36px;
+            margin: 0;
+            font-weight: bold;
+            color: #111;
+        }
+        .titulo-principal span {
+            color: #d32f2f;
+            text-decoration: underline;
+        }
+
+        .barra-navegacao {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 20px;
+            border-top: 1px solid #dcdfe6;
+            border-bottom: 1px solid #dcdfe6;
+        }
+        .links-menu a {
+            text-decoration: none;
+            color: #004085;
+            font-size: 14px;
+            margin-right: 15px;
+        }
+
+        .busca-container {
+            display: flex;
+            align-items: center;
+        }
+        .busca-container input {
+            padding: 8px 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 4px 0 0 4px;
+            font-size: 13px;
+            outline: none;
+            width: 160px;
+        }
+        .busca-container button {
+            background-color: #2c3e50;
+            color: white;
+            border: 1px solid #2c3e50;
+            padding: 8px 12px;
+            border-radius: 0 4px 4px 0;
+            cursor: pointer;
+        }
+
+        .conteudo-jornal {
+            padding: 20px;
+            max-width: 1000px;
+            margin: 0 auto;
+            flex: 1;
+            overflow-y: auto;
+        }
+        .bloco-manchete {
+            border-left: 3px solid #cbd5e1;
+            padding-left: 15px;
+            margin-bottom: 20px;
+        }
+        .bloco-manchete h2 {
+            font-family: 'Georgia', serif;
+            margin: 0 0 10px 0;
+        }
+
+        /* --- CAMADA 2: MODAL DA SENHA DA SALA --- */
+        #modalSala {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .caixa-modal {
+            background: white;
+            padding: 25px;
+            border-radius: 8px;
+            text-align: center;
+            width: 80%;
+            max-width: 320px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+        .caixa-modal h3 { margin-top: 0; color: #2c3e50; }
+        .caixa-modal input {
+            width: 90%;
+            padding: 10px;
+            margin: 15px 0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 16px;
+            text-align: center;
+        }
+        .caixa-modal button {
+            background: #075e54;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        /* --- CAMADA 3: ESTILO DO CHAT (TELEGRAM/WHATSAPP) --- */
+        #telaChat {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            background-color: #0e1621; /* Tom escuro no estilo Telegram */
+            color: white;
+        }
+        .chat-header {
+            background-color: #17212b;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #242f3d;
+        }
+        .status-online { color: #40b3e0; font-weight: bold; font-size: 13px; }
+        .status-offline { color: #e74c3c; font-weight: bold; font-size: 13px; }
+
+        .area-mensagens {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            background-color: #0e1621;
+        }
+
+        /* Balões de Mensagem */
+        .mensagem {
+            max-width: 75%;
+            padding: 10px 14px;
+            border-radius: 12px;
+            word-wrap: break-word;
+            font-size: 15px;
+            line-height: 1.4;
+        }
+        .mensagem-minha {
+            background-color: #2b5278;
+            align-self: flex-end;
+            border-bottom-right-radius: 2px;
+            color: white;
+        }
+        .mensagem-outros {
+            background-color: #182533;
+            align-self: flex-start;
+            border-bottom-left-radius: 2px;
+            color: white;
+        }
+        .mensagem img {
+            max-width: 100%;
+            border-radius: 8px;
+            margin-top: 5px;
+        }
+        .mensagem audio {
+            max-width: 100%;
+            margin-top: 5px;
+        }
+
+        /* Rodapé de Envio */
+        .chat-input-area {
+            background-color: #17212b;
+            padding: 10px 15px;
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        .chat-input-area input[type="text"] {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 20px;
+            font-size: 15px;
+            outline: none;
+            background-color: #242f3d;
+            color: white;
+        }
+        .btn-acao {
+            background-color: #242f3d;
+            color: #40b3e0;
+            border: none;
+            border-radius: 50%;
+            width: 42px;
+            height: 42px;
+            font-size: 18px;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .btn-enviar {
+            background-color: #5288c1;
+            color: white;
         }
     </style>
 </head>
 <body>
 
-    <!-- TELA 1: O JORNAL (Disfarce) -->
-    <div id="telaJornal" style="display: flex; flex-direction: column; height: 100vh;">
-        <header style="background: #2c3e50; color: white; text-align: center; padding: 20px;">
-            <h1 style="margin: 0;">O Observador</h1>
-            <p style="margin: 5px 0 0 0; font-size: 14px;">Portal de Notícias</p>
-        </header>
-
-        <div style="padding: 15px; text-align: center; background: #e9ecef; border-bottom: 1px solid #ddd;">
-            <input type="text" id="campoBusca" placeholder="Digite a senha..." style="padding: 12px; width: 220px; font-size: 16px; border: 1px solid #ccc; border-radius: 4px; outline: none;">
-            <button type="button" onclick="testarAcesso()" style="padding: 12px 20px; background: #2c3e50; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 16px;">Acessar</button>
+    <!-- CAMADA 1: FACHADA DO JORNAL -->
+    <div id="telaJornal">
+        <div class="topo-informativo">
+            <span id="dataAtual">segunda-feira, 10 de agosto de 2026</span>
+            <span>Fontes Abertas em Tempo Real</span>
+            <span id="relogioAtual">13:08:32</span>
         </div>
 
-        <main style="padding: 20px; flex: 1; overflow-y: auto;">
-            <h2 style="color: #333;">Notícias Recentes</h2>
-            <p style="color: #666;">Sistema carregado e pronto para operação de leitura de acervo.</p>
+        <header class="jornal-header">
+            <div class="fundado">FUNDADO EM 1923</div>
+            <h1 class="titulo-principal">O <span>Observador</span></h1>
+        </header>
+
+        <nav class="barra-navegacao">
+            <div class="links-menu">
+                <a href="#">Geral</a>
+                <a href="#">Edições</a>
+            </div>
+            
+            <!-- GATILHO SECRETO 1: SENHA MASTER (106230) -->
+            <div class="busca-container">
+                <input type="text" id="campoBusca" placeholder="Buscar no acervo..." autocomplete="off">
+                <button type="button" onclick="validarGatilhoMaster()">🔍</button>
+            </div>
+        </nav>
+
+        <main class="conteudo-jornal">
+            <section class="bloco-manchete">
+                <h2>Inovações Tecnológicas em Redes Descentralizadas</h2>
+                <p>Acompanhe os desenvolvimentos mais recentes da infraestrutura digital global...</p>
+            </section>
         </main>
     </div>
 
-    <!-- TELA 2: O CHAT (Inicia oculto) -->
-    <div id="telaChat" style="display: none; height: 100vh; flex-direction: column; background: #e5ddd5;">
-        <header style="background: #075e54; color: white; padding: 15px; text-align: center;">
-            <h2 style="margin: 0; font-size: 18px;">Sala Segura - O Observador</h2>
+    <!-- CAMADA 2: MODAL DE ACESSO À SALA (Gatilho Secreto 2) -->
+    <div id="modalSala" class="oculto">
+        <div class="caixa-modal">
+            <h3>Autenticação de Sala</h3>
+            <p style="font-size: 13px; color: #666;">Digite a senha da sala do chat:</p>
+            <input type="password" id="senhaSalaInput" placeholder="Senha da Sala" autocomplete="off">
+            <button type="button" onclick="validarSenhaSala()">Acessar Sala</button>
+        </div>
+    </div>
+
+    <!-- CAMADA 3: SALA DE CHAT ESTILO TELEGRAM -->
+    <div id="telaChat" class="oculto">
+        <header class="chat-header">
+            <div>
+                <strong style="font-size: 16px;">O Observador - Sala Privada</strong>
+            </div>
+            <span id="statusConexao" class="status-offline">Desconectado</span>
         </header>
         
-        <main id="areaMensagens" style="flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px;">
-            <div style="background: #ffffff; padding: 10px 15px; border-radius: 8px; max-width: 70%; align-self: flex-start; box-shadow: 0 1px 1px rgba(0,0,0,0.1);">
-                Bem-vindo à sala segura de comunicação.
+        <main id="areaMensagens" class="area-mensagens">
+            <div class="mensagem mensagem-outros">
+                🔒 Sala segura inicializada. Envie textos, imagens ou áudios.
             </div>
         </main>
 
-        <footer style="padding: 12px; background: #f0f0f0; display: flex; gap: 10px; align-items: center;">
-            <input type="text" id="mensagemInput" placeholder="Escreva uma mensagem..." style="flex: 1; padding: 12px; border: none; border-radius: 20px; outline: none; font-size: 15px;">
-            <button type="button" onclick="enviarMensagem()" style="background: #075e54; color: white; border: none; border-radius: 50%; width: 45px; height: 45px; cursor: pointer; font-size: 16px; display: flex; justify-content: center; align-items: center;">➤</button>
+        <footer class="chat-input-area">
+            <!-- Inputs Ocultos de Mídia -->
+            <input type="file" id="fotoInput" style="display: none;" accept="image/*">
+            <input type="file" id="audioInput" style="display: none;" accept="audio/*">
+
+            <!-- Botões de Anexo -->
+            <button type="button" class="btn-acao" onclick="document.getElementById('fotoInput').click()" title="Enviar Foto">📷</button>
+            <button type="button" class="btn-acao" onclick="document.getElementById('audioInput').click()" title="Enviar Áudio">🎵</button>
+            
+            <!-- Entrada de Texto -->
+            <input type="text" id="mensagemInput" placeholder="Escreva uma mensagem...">
+            <button type="button" class="btn-acao btn-enviar" onclick="enviarMensagemTexto()">➤</button>
         </footer>
     </div>
 
-    <!-- SCRIPT INTERNO INTEGRADO (Garante execução imediata sem falhas de cache) -->
+    <!-- LÓGICA COMPLETA DE PROGRAMAÇÃO -->
     <script>
-        const SENHA_SECRETA = "106230";
+        // CONFIGURAÇÃO DAS SENHAS
+        const SENHA_MASTER = "106230"; // Senha do campo de busca do jornal
+        const SENHA_SALA = "sala123";  // Senha da Sala de Bate-Papo
+        const TEMPO_INATIVIDADE = 30000; // 30 segundos de inatividade
 
-        function testarAcesso() {
-            const input = document.getElementById('campoBusca');
-            const telaJornal = document.getElementById('telaJornal');
-            const telaChat = document.getElementById('telaChat');
+        let cronometroInatividade;
+        let socket = null;
 
-            if (!input) return;
+        // 1. RELÓGIO EM TEMPO REAL
+        setInterval(() => {
+            const relogio = document.getElementById('relogioAtual');
+            if (relogio) relogio.innerText = new Date().toLocaleTimeString('pt-BR');
+        }, 1000);
 
-            const valorDigitado = input.value.trim();
+        // 2. VALIDAÇÃO DA SENHA MASTER (Etapa 1)
+        function validarGatilhoMaster() {
+            const campo = document.getElementById('campoBusca');
+            if (!campo) return;
 
-            if (valorDigitado === SENHA_SECRETA) {
-                input.value = "";
-                // Oculta o jornal de forma absoluta e mostra o chat
-                telaJornal.style.display = 'none';
-                telaChat.style.display = 'flex';
+            if (campo.value.trim() === SENHA_MASTER) {
+                campo.value = "";
+                // Exibe o modal de senha da sala
+                document.getElementById('modalSala').classList.remove('oculto');
             } else {
-                alert("Senha incorreta! Verifique o código digitado.");
+                alert("Nenhum documento encontrado com o termo: " + campo.value);
+                campo.value = "";
+            }
+        }
+
+        // Permite apertar Enter no campo de busca do jornal
+        document.getElementById('campoBusca').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                validarGatilhoMaster();
+            }
+        });
+
+        // 3. VALIDAÇÃO DA SENHA DA SALA (Etapa 2)
+        function validarSenhaSala() {
+            const inputSala = document.getElementById('senhaSalaInput');
+            if (!inputSala) return;
+
+            if (inputSala.value.trim() === SENHA_SALA) {
+                inputSala.value = "";
+                
+                // Transição de telas: Esconde Jornal e Modal, exibe Chat
+                document.getElementById('modalSala').classList.add('oculto');
+                document.getElementById('telaJornal').classList.add('oculto');
+                document.getElementById('telaChat').classList.remove('oculto');
+
+                // Conecta a rede e inicia o temporizador de segurança
+                iniciarConexaoChat();
+                iniciarMonitoramentoInatividade();
+            } else {
+                alert("Senha da sala incorreta!");
+                inputSala.value = "";
+            }
+        }
+
+        // Permite apertar Enter no modal da sala
+        document.getElementById('senhaSalaInput').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                validarSenhaSala();
+            }
+        });
+
+        // 4. SEGURANÇA POR INATIVIDADE (30 Segundos)
+        function bloquearPorInatividade() {
+            document.getElementById('telaChat').classList.add('oculto');
+            document.getElementById('modalSala').classList.add('oculto');
+            document.getElementById('telaJornal').classList.remove('oculto');
+
+            if (socket) socket.close();
+            pararMonitoramentoInatividade();
+        }
+
+        function reiniciarCronometro() {
+            clearTimeout(cronometroInatividade);
+            cronometroInatividade = setTimeout(bloquearPorInatividade, TEMPO_INATIVIDADE);
+        }
+
+        function iniciarMonitoramentoInatividade() {
+            reiniciarCronometro();
+            window.addEventListener('mousemove', reiniciarCronometro);
+            window.addEventListener('keypress', reiniciarCronometro);
+            window.addEventListener('click', reiniciarCronometro);
+            window.addEventListener('touchstart', reiniciarCronometro);
+        }
+
+        function pararMonitoramentoInatividade() {
+            clearTimeout(cronometroInatividade);
+            window.removeEventListener('mousemove', reiniciarCronometro);
+            window.removeEventListener('keypress', reiniciarCronometro);
+            window.removeEventListener('click', reiniciarCronometro);
+            window.removeEventListener('touchstart', reiniciarCronometro);
+        }
+
+        // 5. CONEXÃO WEBSOCKET EM TEMPO REAL
+        function iniciarConexaoChat() {
+            const protocolo = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
+            socket = new WebSocket(protocolo + window.location.host);
+
+            socket.onopen = () => {
+                const status = document.getElementById('statusConexao');
+                if (status) {
+                    status.innerText = "Online";
+                    status.className = "status-online";
+                }
+            };
+
+            socket.onclose = () => {
+                const status = document.getElementById('statusConexao');
+                if (status) {
+                    status.innerText = "Desconectado";
+                    status.className = "status-offline";
+                }
+            };
+
+            socket.onmessage = (evento) => {
+                const dados = JSON.parse(evento.data);
+                exibirMensagem(dados.conteudo, dados.tipo, 'mensagem-outros');
+            };
+        }
+
+        // 6. ENVIAR MENSAGENS DE TEXTO
+        function enviarMensagemTexto() {
+            const input = document.getElementById('mensagemInput');
+            const texto = input.value.trim();
+
+            if (texto !== "" && socket && socket.readyState === WebSocket.OPEN) {
+                socket.send(JSON.stringify({ tipo: 'texto', conteudo: texto }));
+                exibirMensagem(texto, 'texto', 'mensagem-minha');
                 input.value = "";
             }
         }
 
-        function enviarMensagem() {
-            const msgInput = document.getElementById('mensagemInput');
-            const area = document.getElementById('areaMensagens');
-
-            if (msgInput && msgInput.value.trim() !== "") {
-                const novaMsg = document.createElement('div');
-                novaMsg.style.background = "#dcf8c6";
-                novaMsg.style.padding = "10px 15px";
-                novaMsg.style.borderRadius = "8px";
-                novaMsg.style.maxWidth = "70%";
-                novaMsg.style.alignSelf = "flex-end";
-                novaMsg.style.boxShadow = "0 1px 1px rgba(0,0,0,0.1)";
-                novaMsg.innerText = msgInput.value;
-                
-                area.appendChild(novaMsg);
-                msgInput.value = "";
-                area.scrollTop = area.scrollHeight;
+        document.getElementById('mensagemInput').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                enviarMensagemTexto();
             }
+        });
+
+        // 7. ENVIAR FOTOS / IMAGENS
+        document.getElementById('fotoInput').addEventListener('change', function(e) {
+            const arquivo = e.target.files[0];
+            if (!arquivo) return;
+
+            const leitor = new FileReader();
+            leitor.onload = function(evt) {
+                const base64 = evt.target.result;
+                if (socket && socket.readyState === WebSocket.OPEN) {
+                    socket.send(JSON.stringify({ tipo: 'imagem', conteudo: base64 }));
+                    exibirMensagem(base64, 'imagem', 'mensagem-minha');
+                }
+            };
+            leitor.readAsDataURL(arquivo);
+            this.value = "";
+        });
+
+        // 8. ENVIAR ÁUDIOS
+        document.getElementById('audioInput').addEventListener('change', function(e) {
+            const arquivo = e.target.files[0];
+            if (!arquivo) return;
+
+            const leitor = new FileReader();
+            leitor.onload = function(evt) {
+                const base64 = evt.target.result;
+                if (socket && socket.readyState === WebSocket.OPEN) {
+                    socket.send(JSON.stringify({ tipo: 'audio', conteudo: base64 }));
+                    exibirMensagem(base64, 'audio', 'mensagem-minha');
+                }
+            };
+            leitor.readAsDataURL(arquivo);
+            this.value = "";
+        });
+
+        // 9. EXIBIR MENSAGENS NA TELA
+        function exibirMensagem(conteudo, tipo, classeCSS) {
+            const area = document.getElementById('areaMensagens');
+            const balao = document.createElement('div');
+            balao.classList.add('mensagem', classeCSS);
+
+            if (tipo === 'texto') {
+                balao.innerText = conteudo;
+            } else if (tipo === 'imagem') {
+                const img = document.createElement('img');
+                img.src = conteudo;
+                balao.appendChild(img);
+            } else if (tipo === 'audio') {
+                const audio = document.createElement('audio');
+                audio.src = conteudo;
+                audio.controls = true;
+                balao.appendChild(audio);
+            }
+
+            area.appendChild(balao);
+            area.scrollTop = area.scrollHeight;
         }
     </script>
 </body>
