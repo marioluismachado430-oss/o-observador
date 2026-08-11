@@ -7,14 +7,14 @@
     <title>O Observador</title>
     <style>
         * { box-sizing: border-box; }
-        body {
+        html, body {
             margin: 0;
+            padding: 0;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: #f4f6f8;
             color: #222;
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
+            width: 100%;
+            height: 100%;
             overflow: hidden;
         }
 
@@ -24,7 +24,8 @@
         #telaJornal {
             display: flex;
             flex-direction: column;
-            height: 100vh;
+            width: 100%;
+            height: 100%;
             background-color: #f4f6f8;
         }
 
@@ -154,13 +155,15 @@
             width: 100%;
         }
 
-        /* --- CAMADA 3: ESTILO DO CHAT --- */
+        /* --- CAMADA 3: ESTILO DO CHAT (MOBILE BLINDADO) --- */
         #telaChat {
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
+            position: relative;
+            width: 100%;
+            height: 100%;
             background-color: #0e1621;
             color: white;
+            display: flex;
+            flex-direction: column;
         }
         .chat-header {
             background-color: #17212b;
@@ -169,12 +172,14 @@
             justify-content: space-between;
             align-items: center;
             border-bottom: 1px solid #242f3d;
+            flex-shrink: 0;
         }
         .status-online { color: #40b3e0; font-weight: bold; font-size: 12px; }
         .status-offline { color: #e74c3c; font-weight: bold; font-size: 12px; }
 
         .area-mensagens {
             flex: 1;
+            width: 100%;
             padding: 15px;
             overflow-y: auto;
             display: flex;
@@ -214,19 +219,24 @@
             margin-top: 4px;
         }
 
-        /* RODAPÉ DO CHAT */
+        /* RODAPÉ DO CHAT FIXO NA BASE */
         .chat-input-area {
+            position: sticky;
+            bottom: 0;
+            left: 0;
+            width: 100%;
             background-color: #17212b;
             padding: 10px;
             display: flex;
             gap: 8px;
             align-items: center;
-            width: 100%;
+            border-top: 1px solid #242f3d;
             flex-shrink: 0;
+            z-index: 10;
         }
         .chat-input-area input[type="text"] {
             flex: 1;
-            width: 0;
+            min-width: 0;
             padding: 10px 14px;
             border: none;
             border-radius: 20px;
@@ -254,7 +264,6 @@
             background-color: #5288c1;
             color: white;
         }
-        /* Estilo visual para gravação de áudio ativa */
         .gravando {
             background-color: #e74c3c !important;
             color: white !important;
@@ -266,7 +275,6 @@
             100% { transform: scale(1); }
         }
 
-        /* Menu de Opções de Imagem (Popup) */
         #menuFoto {
             position: fixed;
             bottom: 70px;
@@ -354,17 +362,14 @@
         </main>
 
         <footer class="chat-input-area">
-            <!-- Inputs ocultos para Câmara e Galeria -->
             <input type="file" id="cameraInput" style="display: none;" accept="image/*" capture="environment">
             <input type="file" id="galeriaInput" style="display: none;" accept="image/*">
 
-            <!-- Menu de Opções de Foto (Aparece ao clicar na câmara) -->
             <div id="menuFoto" class="oculto">
                 <button type="button" onclick="abrirCamera()">📷 Tirar Foto</button>
                 <button type="button" onclick="abrirGaleria()">🖼️ Escolher da Galeria</button>
             </div>
 
-            <!-- Botões de Ação -->
             <button type="button" class="btn-acao" onclick="toggleMenuFoto()" title="Enviar Imagem">📷</button>
             <button type="button" id="btnAudio" class="btn-acao" onclick="toggleGravacaoAudio()" title="Gravar Áudio">🎤</button>
             
@@ -510,7 +515,6 @@
             }
         });
 
-        // --- CONTROLO DO MENU DE FOTOS ---
         function toggleMenuFoto() {
             const menu = document.getElementById('menuFoto');
             menu.classList.toggle('oculto');
@@ -526,7 +530,6 @@
             document.getElementById('galeriaInput').click();
         }
 
-        // Processar Imagem da Câmara ou Galeria
         function processarArquivoImagem(e) {
             const arquivo = e.target.files[0];
             if (!arquivo) return;
@@ -546,7 +549,6 @@
         document.getElementById('cameraInput').addEventListener('change', processarArquivoImagem);
         document.getElementById('galeriaInput').addEventListener('change', processarArquivoImagem);
 
-        // --- SISTEMA DE GRAVAÇÃO DE ÁUDIO ESTILO WHATSAPP ---
         async function toggleGravacaoAudio() {
             const btnAudio = document.getElementById('btnAudio');
 
@@ -571,17 +573,15 @@
                             }
                         };
                         leitor.readAsDataURL(blobAudio);
-                        
-                        // Parar as faixas do microfone
                         stream.getTracks().forEach(track => track.stop());
                     };
 
                     mediaRecorder.start();
                     gravandoAudio = true;
                     btnAudio.classList.add('gravando');
-                    btnAudio.innerText = "⏹️"; // Botão muda para parar
+                    btnAudio.innerText = "⏹️";
                 } catch (err) {
-                    alert("Erro ao aceder ao microfone. Verifique as permissões do navegador.");
+                    alert("Erro ao aceder ao microfone. Verifique as permissões.");
                 }
             } else {
                 if (mediaRecorder && mediaRecorder.state !== "inactive") {
@@ -589,11 +589,10 @@
                 }
                 gravandoAudio = false;
                 btnAudio.classList.remove('gravando');
-                btnAudio.innerText = "🎤"; // Retorna ao ícone normal
+                btnAudio.innerText = "🎤";
             }
         }
 
-        // --- EXIBIÇÃO DE MENSAGENS ---
         function exibirMensagem(conteudo, tipo, classeCSS) {
             const area = document.getElementById('areaMensagens');
             const balao = document.createElement('div');
