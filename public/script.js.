@@ -1,42 +1,90 @@
-// public/script.js
+// server.js - Servidor de Comunicação em Tempo Real com Suporte a Mídia e Histórico
+const express = require('express');
+const http = require('http');
+const WebSocket = require('ws');
 
-const SENHA_SECRETA = "106230";
+const app = express();
+const servidor = http.createServer(app);
 
-function verificarSenha() {
-    const input = document.getElementById('campoBusca');
-    const telaJornal = document.getElementById('telaJornal');
-    const telaChat = document.getElementById('telaChat');
+// Configura o WebSocket com limite de payload aumentado para 10MB (suporta fotos e áudios)
+const wss = new WebSocket.Server({ 
+    server: servidor,
+    maxPayload: 10 * 1024 * 1024 // 10 Megabytes
+});
 
-    if (!input) return;
+// Armazena as últimas mensagens enviadas na memória do servidor
+let historicoMensagens = [];
 
-    const valorDigitado = input.value.trim();
+// Disponibiliza os arquivos estáticos da pasta 'public'
+app.use(express.static('public'));
 
-    if (valorDigitado === SENHA_SECRETA) {
-        input.value = "";
-        // Oculta o jornal e mostra o chat de forma direta e forçada
-        telaJornal.style.display = 'none';
-        telaChat.style.display = 'flex';
-    } else {
-        alert("Senha incorreta!");
-        input.value = "";
+wss.on('connection', (ws) => {
+    ws.isAlive = true;
+
+    // Responde ao sinal de batimento cardíaco (ping/pong)
+    ws.on('pong', () => {
+        ws.isAlive = true;
+    });
+
+    // Envia o histórico completo para novos dispositivos conectados
+    try {
+        historicoMensagens.forEach((msg) => {
+            if (ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify(msg));
+            }
+        });
+    } catch (erro) {
+        console.error("Erro ao enviar histórico inicial:", erro);
     }
-}
 
-function enviarMensagem() {
-    const msgInput = document.getElementById('mensagemInput');
-    const area = document.getElementById('areaMensagens');
+    // Processamento de novas mensagens (Texto, Imagem, Áudio)
+    ws.on('message', (dadosBrutos) => {
+        try {
+            const mensagemObj = JSON.parse(dadosBrutos);
 
-    if (msgInput && msgInput.value.trim() !== "") {
-        const novaMsg = document.createElement('div');
-        novaMsg.style.background = "#dcf8c6";
-        novaMsg.style.padding = "8px 12px";
-        novaMsg.style.margin = "5px 0";
-        novaMsg.style.borderRadius = "5px";
-        novaMsg.style.maxWidth = "70%";
-        novaMsg.style.alignSelf = "flex-end";
-        novaMsg.innerText = msgInput.value;
-        
-        area.appendChild(novaMsg);
-        msgInput.value = "";
-    }
-}
+            // Adiciona a nova mensagem ao histórico
+            historicoMensagens.push(mensagemObj);
+
+            // Mantém apenas as últimas 100 mensagens para otimizar o uso da memória
+            if (historicoMensagens.length > 100) {
+                historicoMensagens.shift();
+            }
+
+            // Retransmite a mensagem para todos os outros clientes conectados
+            wss.clients.forEach((cliente) => {
+                if (cliente !== ws && cliente.readyState === WebSocket.OPEN) {
+                    cliente.send(JSON.stringify(mensagemObj));
+                }
+            });
+        } catch (erro) {
+            console.error("Erro ao processar pacote recebido:", erro);
+        }
+    });
+
+    ws.on('error', (erro) => {
+        console.error("Erro na conexão WebSocket:", erro);
+    });
+
+    ws.on('close', () => {
+        console.log("Dispositivo desconectado.");
+    });
+});
+
+// Monitoramento de conexões ativas a cada 25 segundos para manter a linha aberta
+const intervaloMonitor = setInterval(() => {
+    wss.clients.forEach((ws) => {
+        if (ws.isAlive === false) return ws.terminate();
+        ws.isAlive = false;
+        ws.ping();
+    });
+}, 25000);
+
+wss.on('close', () => {
+    clearInterval(intervaloMonitor);
+});
+
+// Definição da porta para hospedagem no Render
+const PORTA = process.env.PORT || 3000;
+servidor.listen(PORTA, () => {
+    console.log(`Servidor rodando na porta ${PORTA}`);
+});
