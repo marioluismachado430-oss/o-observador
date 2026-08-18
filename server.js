@@ -119,6 +119,6 @@ wss.on('close', () => {
 
 // Inicialização na porta configurada pelo ambiente ou porta padrão 3000
 const PORTA = process.env.PORT || 3000;
-servidor.listen(PORTA, () => {
+servidor.listen(PORTA, '0.0.0.0', () => {
     console.log(`Servidor O Observador rodando na porta ${PORTA}`);
 });
