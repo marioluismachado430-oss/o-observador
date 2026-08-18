@@ -432,6 +432,7 @@
         let pedacosAudio = [];
         let gravandoAudio = false;
         let tempoDigitandoTimeout;
+        let tempoReconexao;
 
         // Atualização do relógio
         setInterval(() => {
@@ -439,7 +440,7 @@
             if (relogio) relogio.innerText = new Date().toLocaleTimeString('pt-BR');
         }, 1000);
 
-        // Gatilho Senha Master (Continua funcionando na nova barra de busca)
+        // Gatilho Senha Master
         function validarGatilhoMaster() {
             const campo = document.getElementById('campoBusca');
             if (!campo) return;
@@ -503,6 +504,10 @@
 
         // Conexão WebSocket
         function iniciarConexaoChat() {
+            if (socket && (socket.readyState === WebSocket.CONNECTING || socket.readyState === WebSocket.OPEN)) {
+                return; // Evita criar várias conexões ao mesmo tempo
+            }
+
             const protocolo = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
             socket = new WebSocket(protocolo + window.location.host);
 
@@ -516,7 +521,9 @@
                 const status = document.getElementById('statusConexao');
                 status.innerText = "Desconectado";
                 status.className = "status-offline";
-                setTimeout(iniciarConexaoChat, 3000);
+                
+                clearTimeout(tempoReconexao);
+                tempoReconexao = setTimeout(iniciarConexaoChat, 3000); // Tenta reconectar a cada 3s
             };
 
             socket.onerror = (erro) => {
@@ -612,7 +619,7 @@
             }
         }
 
-        // Renderiza as Mensagens (Mostra ✓ único cinza ao enviar)
+        // Renderiza as Mensagens na tela
         function renderizarMensagem(pacote, eMinha) {
             const area = document.getElementById('areaMensagens');
             
@@ -640,7 +647,7 @@
             limparHistoricoInteligente();
         }
 
-        // Confirma leitura mudando para ✓✓ azul
+        // Confirma leitura
         function removerMensagemLida(idMensagem) {
             const elem = document.getElementById(`msg-${idMensagem}`);
             if (elem) {
@@ -652,6 +659,50 @@
             }
         }
 
+        // --- NOVA FUNÇÃO BLINDADA: ENVIA QUANDO A CONEXÃO VOLTAR ---
+        function enviarComTentativa(pacote) {
+            const pacoteStr = JSON.stringify({
+                tipoEvent: 'nova_mensagem',
+                conteudo: pacote
+            });
+
+            // Se estiver tudo aberto e perfeito, envia na hora!
+            if (socket && socket.readyState === WebSocket.OPEN) {
+                socket.send(pacoteStr);
+                renderizarMensagem(pacote, true);
+            } else {
+                // Se a conexão caiu por causa da câmera, espera ela voltar!
+                const status = document.getElementById('statusConexao');
+                status.innerText = "Reconectando para enviar...";
+                status.className = "status-offline";
+
+                // Se o chat desistiu de conectar, força ele a tentar de novo
+                if (!socket || socket.readyState === WebSocket.CLOSED) {
+                    iniciarConexaoChat();
+                }
+
+                let tentativas = 0;
+                const intervalo = setInterval(() => {
+                    // Assim que voltar, dispara a mensagem retida e limpa a tela!
+                    if (socket && socket.readyState === WebSocket.OPEN) {
+                        clearInterval(intervalo);
+                        socket.send(pacoteStr);
+                        renderizarMensagem(pacote, true);
+                        status.innerText = "Online";
+                        status.className = "status-online";
+                    }
+                    
+                    tentativas++;
+                    // Dá até 15 segundos para o tablet recuperar o sinal
+                    if (tentativas >= 15) {
+                        clearInterval(intervalo);
+                        alert("A conexão com a internet oscilou. Tente enviar novamente.");
+                        status.innerText = "Desconectado";
+                    }
+                }, 1000); // Checa a cada 1 segundo
+            }
+        }
+
         // Envia Texto
         function enviarMensagemTexto() {
             const input = document.getElementById('mensagemInput');
@@ -659,28 +710,18 @@
 
             if (texto === "") return;
 
-            if (socket && socket.readyState === WebSocket.OPEN) {
-                const pacote = {
-                    id: 'msg_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
-                    remetente: idUsuario,
-                    tipoMidia: 'texto',
-                    conteudo: texto,
-                    lida: false
-                };
+            const pacote = {
+                id: 'msg_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
+                remetente: idUsuario,
+                tipoMidia: 'texto',
+                conteudo: texto,
+                lida: false
+            };
 
-                socket.send(JSON.stringify({
-                    tipoEvent: 'nova_mensagem',
-                    conteudo: pacote
-                }));
-
-                renderizarMensagem(pacote, true);
-                input.value = "";
-            } else {
-                alert("Conexão indisponível. Aguarde a reconexão.");
-            }
+            enviarComTentativa(pacote);
+            input.value = "";
         }
 
-        // Gatilho do Enter para envio
         document.getElementById('mensagemInput').addEventListener('keypress', function (e) {
             if (e.key === 'Enter') {
                 enviarMensagemTexto();
@@ -706,24 +747,16 @@
             const leitor = new FileReader();
             leitor.onload = function(evt) {
                 const base64 = evt.target.result;
-                if (socket && socket.readyState === WebSocket.OPEN) {
-                    const pacote = {
-                        id: 'msg_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
-                        remetente: idUsuario,
-                        tipoMidia: 'imagem',
-                        conteudo: base64,
-                        lida: false
-                    };
+                const pacote = {
+                    id: 'msg_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
+                    remetente: idUsuario,
+                    tipoMidia: 'imagem',
+                    conteudo: base64,
+                    lida: false
+                };
 
-                    socket.send(JSON.stringify({
-                        tipoEvent: 'nova_mensagem',
-                        conteudo: pacote
-                    }));
-
-                    renderizarMensagem(pacote, true);
-                } else {
-                    alert("Servidor desconectado. Não foi possível enviar a imagem.");
-                }
+                // Agora usa a nossa função blindada em vez de dar alert!
+                enviarComTentativa(pacote);
             };
             leitor.readAsDataURL(arquivo);
             this.value = "";
@@ -765,24 +798,16 @@
                         const leitor = new FileReader();
                         leitor.onload = function(evt) {
                             const base64Audio = evt.target.result;
-                            if (socket && socket.readyState === WebSocket.OPEN) {
-                                const pacote = {
-                                    id: 'msg_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
-                                    remetente: idUsuario,
-                                    tipoMidia: 'audio',
-                                    conteudo: base64Audio,
-                                    lida: false
-                                };
-
-                                socket.send(JSON.stringify({
-                                    tipoEvent: 'nova_mensagem',
-                                    conteudo: pacote
-                                }));
-
-                                renderizarMensagem(pacote, true);
-                            } else {
-                                alert("Falha na conexão. Áudio não enviado.");
-                            }
+                            const pacote = {
+                                id: 'msg_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
+                                remetente: idUsuario,
+                                tipoMidia: 'audio',
+                                conteudo: base64Audio,
+                                lida: false
+                            };
+                            
+                            // Também blindado para áudios!
+                            enviarComTentativa(pacote);
                         };
                         leitor.readAsDataURL(blobAudio);
                     };
