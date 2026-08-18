@@ -20,7 +20,7 @@
 
         .oculto { display: none !important; }
 
-        /* --- CAMADA 1: DESIGN DO JORNAL --- */
+        /* --- CAMADA 1: DESIGN DO JORNAL (FACHADA) --- */
         #telaJornal {
             display: flex;
             flex-direction: column;
@@ -155,7 +155,7 @@
             width: 100%;
         }
 
-        /* --- CAMADA 3: ESTILO DO CHAT SEGURO --- */
+        /* --- CAMADA 3: CHAT PRIVADO --- */
         #telaChat {
             position: relative;
             width: 100%;
@@ -176,6 +176,17 @@
         }
         .status-online { color: #40b3e0; font-weight: bold; font-size: 12px; }
         .status-offline { color: #e74c3c; font-weight: bold; font-size: 12px; }
+        
+        .btn-panico {
+            background-color: #c0392b;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            cursor: pointer;
+            font-weight: bold;
+        }
 
         .area-mensagens {
             flex: 1;
@@ -188,26 +199,46 @@
             background-color: #0e1621;
         }
 
+        /* DISSOLUÇÃO / REMOÇÃO DA MENSAGEM */
         .mensagem {
             max-width: 80%;
             padding: 10px 12px;
-            border-radius: 10px;
+            border-radius: 12px;
             word-wrap: break-word;
             font-size: 14px;
             line-height: 1.4;
+            transition: opacity 0.5s ease, transform 0.5s ease;
         }
+        .mensagem.saindo {
+            opacity: 0;
+            transform: scale(0.9);
+        }
+
+        /* ESTILOS DE CORES (Minha = Azul Escuro / Outros = Cinza Escuro) */
         .mensagem-minha {
             background-color: #2b5278;
             align-self: flex-end;
             border-bottom-right-radius: 2px;
-            color: white;
+            color: #ffffff;
+            border: 1px solid #3c6e91;
         }
         .mensagem-outros {
             background-color: #182533;
             align-self: flex-start;
             border-bottom-left-radius: 2px;
-            color: white;
+            color: #d1d1d1;
+            border: 1px solid #242f3d;
         }
+
+        .status-check {
+            font-size: 11px;
+            margin-left: 6px;
+            float: right;
+            margin-top: 4px;
+        }
+        .check-enviado { color: #a0a0a0; }
+        .check-lido { color: #40b3e0; }
+
         .mensagem img {
             max-width: 100%;
             border-radius: 6px;
@@ -220,6 +251,15 @@
             margin-top: 4px;
         }
 
+        .indicador-digitando {
+            font-size: 12px;
+            color: #40b3e0;
+            padding: 4px 15px;
+            font-style: italic;
+            height: 20px;
+        }
+
+        /* RODAPÉ DO CHAT */
         .chat-input-area {
             position: sticky;
             bottom: 0;
@@ -267,7 +307,7 @@
         .gravando {
             background-color: #e74c3c !important;
             color: white !important;
-            animation: pulsar 1.5s infinite;
+            animation: pulsar 1.2s infinite;
         }
         @keyframes pulsar {
             0% { transform: scale(1); }
@@ -305,9 +345,9 @@
     <!-- CAMADA 1: FACHADA DO JORNAL -->
     <div id="telaJornal">
         <div class="topo-informativo">
-            <span id="dataAtual">segunda-feira, 10 de agosto de 2026</span>
+            <span id="dataAtual">terça-feira, 18 de agosto de 2026</span>
             <span>Fontes Abertas em Tempo Real</span>
-            <span id="relogioAtual">13:08:32</span>
+            <span id="relogioAtual">08:00:00</span>
         </div>
 
         <header class="jornal-header">
@@ -335,7 +375,7 @@
         </main>
     </div>
 
-    <!-- CAMADA 2: MODAL DE ACESSO À SALA -->
+    <!-- CAMADA 2: MODAL DA SENHA DA SALA -->
     <div id="modalSala" class="oculto">
         <div class="caixa-modal">
             <h3>Autenticação de Sala</h3>
@@ -345,20 +385,21 @@
         </div>
     </div>
 
-    <!-- CAMADA 3: SALA DE CHAT -->
+    <!-- CAMADA 3: SALA DE CHAT SEGURO -->
     <div id="telaChat" class="oculto">
         <header class="chat-header">
             <div>
                 <strong style="font-size: 15px;">O Observador - Sala Privada</strong>
             </div>
-            <span id="statusConexao" class="status-offline">Desconectado</span>
+            <div>
+                <span id="statusConexao" class="status-offline">Desconectado</span>
+                <button type="button" class="btn-panico" onclick="botaoPanicoSair()" title="Sair Imediatamente">🔒 Trancar</button>
+            </div>
         </header>
         
-        <main id="areaMensagens" class="area-mensagens">
-            <div class="mensagem mensagem-outros">
-                🔒 Sala segura inicializada. Envie textos, imagens ou áudios.
-            </div>
-        </main>
+        <main id="areaMensagens" class="area-mensagens"></main>
+        
+        <div id="indicadorDigitando" class="indicador-digitando"></div>
 
         <footer class="chat-input-area">
             <input type="file" id="cameraInput" style="display: none;" accept="image/*" capture="environment">
@@ -372,28 +413,34 @@
             <button type="button" class="btn-acao" onclick="toggleMenuFoto()" title="Enviar Imagem">📷</button>
             <button type="button" id="btnAudio" class="btn-acao" onclick="toggleGravacaoAudio()" title="Gravar Áudio">🎤</button>
             
-            <input type="text" id="mensagemInput" placeholder="Mensagem...">
+            <input type="text" id="mensagemInput" placeholder="Mensagem..." oninput="notificarDigitando()">
             <button type="button" class="btn-acao btn-enviar" onclick="enviarMensagemTexto()">➤</button>
         </footer>
     </div>
 
-    <!-- LÓGICA DE COMUNICAÇÃO E MÍDIA -->
+    <!-- LÓGICA DO CLIENTE -->
     <script>
         const SENHA_MASTER = "106230";
         const SENHA_SALA = "sala123";  
         const TEMPO_INATIVIDADE = 120000; // 2 minutos
+
+        // ID único por sessão para diferenciar remetente e destinatário
+        const idUsuario = 'user_' + Math.random().toString(36).substr(2, 9);
 
         let cronometroInatividade;
         let socket = null;
         let mediaRecorder = null;
         let pedacosAudio = [];
         let gravandoAudio = false;
+        let tempoDigitandoTimeout;
 
+        // Atualização do relógio superior
         setInterval(() => {
             const relogio = document.getElementById('relogioAtual');
             if (relogio) relogio.innerText = new Date().toLocaleTimeString('pt-BR');
         }, 1000);
 
+        // Validação da Senha Master
         function validarGatilhoMaster() {
             const campo = document.getElementById('campoBusca');
             if (!campo) return;
@@ -414,6 +461,7 @@
             }
         });
 
+        // Validação da Senha da Sala
         function validarSenhaSala() {
             const inputSala = document.getElementById('senhaSalaInput');
             if (!inputSala) return;
@@ -439,6 +487,11 @@
                 validarSenhaSala();
             }
         });
+
+        // Botão de Pânico / Trancar Sala
+        function botaoPanicoSair() {
+            bloquearPorInatividade();
+        }
 
         function bloquearPorInatividade() {
             document.getElementById('telaChat').classList.add('oculto');
@@ -470,7 +523,7 @@
             window.removeEventListener('touchstart', reiniciarCronometro);
         }
 
-        // CONEXÃO WEBSOCKET ROBUSTA
+        // Conexão WebSocket
         function iniciarConexaoChat() {
             const protocolo = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
             socket = new WebSocket(protocolo + window.location.host);
@@ -492,21 +545,122 @@
                 setTimeout(iniciarConexaoChat, 3000);
             };
 
-            socket.onerror = (erro) => {
-                console.error("Erro no WebSocket:", erro);
-            };
-
             socket.onmessage = (evento) => {
                 try {
-                    const dados = JSON.parse(evento.data);
-                    exibirMensagem(dados.conteudo, dados.tipo, 'mensagem-outros');
+                    const resposta = JSON.parse(evento.data);
+
+                    // Trata Histórico Inicial (Limpa a tela e carrega)
+                    if (resposta.tipo === 'historico') {
+                        const area = document.getElementById('areaMensagens');
+                        area.innerHTML = '';
+                        
+                        resposta.conteudo.forEach(msg => {
+                            if (!msg.lida) {
+                                renderizarMensagem(msg, msg.remetente === idUsuario);
+                            }
+                        });
+                    } 
+                    // Trata Nova Mensagem Recebida
+                    else if (resposta.tipo === 'nova_mensagem') {
+                        const msg = resposta.conteudo;
+                        if (msg.remetente !== idUsuario) {
+                            renderizarMensagem(msg, false);
+                            
+                            // Confirma leitura automaticamente ao receber/visualizar
+                            socket.send(JSON.stringify({
+                                tipoEvent: 'confirmar_leitura',
+                                idMensagem: msg.id
+                            }));
+                        }
+                    }
+                    // Trata Confirmação de Leitura e Remoção Automática
+                    else if (resposta.tipo === 'mensagem_lida_confirmada') {
+                        removerMensagemLida(resposta.idMensagem);
+                    }
+                    // Trata Indicador de "Digitando..."
+                    else if (resposta.tipo === 'usuario_digitando') {
+                        const elem = document.getElementById('indicadorDigitando');
+                        if (resposta.estado) {
+                            elem.innerText = "Alguém está digitando...";
+                        } else {
+                            elem.innerText = "";
+                        }
+                    }
                 } catch (err) {
-                    console.error("Erro ao ler mensagem recebida:", err);
+                    console.error("Erro ao processar mensagem recebida:", err);
                 }
             };
         }
 
-        // ENVIO DE TEXTO COM VALIDAÇÃO
+        // Notificar que está digitando
+        function notificarDigitando() {
+            if (socket && socket.readyState === WebSocket.OPEN) {
+                socket.send(JSON.stringify({
+                    tipoEvent: 'digitando',
+                    remetente: idUsuario,
+                    estado: true
+                }));
+
+                clearTimeout(tempoDigitandoTimeout);
+                tempoDigitandoTimeout = setTimeout(() => {
+                    socket.send(JSON.stringify({
+                        tipoEvent: 'digitando',
+                        remetente: idUsuario,
+                        estado: false
+                    }));
+                }, 1500);
+            }
+        }
+
+        // Renderização Visual da Mensagem
+        function renderizarMensagem(pacote, eMinha) {
+            const area = document.getElementById('areaMensagens');
+            
+            // Evita duplicação caso a mensagem já esteja na tela
+            if (document.getElementById(`msg-${pacote.id}`)) return;
+
+            const balao = document.createElement('div');
+            balao.id = `msg-${pacote.id}`;
+            balao.classList.add('mensagem', eMinha ? 'mensagem-minha' : 'mensagem-outros');
+
+            let conteudoHTML = '';
+            if (pacote.tipoMidia === 'texto') {
+                conteudoHTML = `<span>${pacote.conteudo}</span>`;
+            } else if (pacote.tipoMidia === 'imagem') {
+                conteudoHTML = `<img src="${pacote.conteudo}" alt="Imagem">`;
+            } else if (pacote.tipoMidia === 'audio') {
+                conteudoHTML = `<audio src="${pacote.conteudo}" controls></audio>`;
+            }
+
+            // Status Check (✓/✓✓)
+            const statusIcone = eMinha ? `<span class="status-check check-enviado" id="check-${pacote.id}">✓</span>` : '';
+            balao.innerHTML = conteudoHTML + statusIcone;
+
+            area.appendChild(balao);
+            area.scrollTop = area.scrollHeight;
+        }
+
+        // Remoção da mensagem após ser lida
+        function removerMensagemLida(idMensagem) {
+            const elem = document.getElementById(`msg-${idMensagem}`);
+            if (elem) {
+                const check = document.getElementById(`check-${idMensagem}`);
+                if (check) {
+                    check.innerText = '✓✓';
+                    check.className = 'status-check check-lido';
+                }
+
+                // Efeito suave de saída antes de remover do DOM
+                setTimeout(() => {
+                    elem.classList.add('saindo');
+                    setTimeout(() => {
+                        elem.remove();
+                    }, 500);
+                }, 1000);
+            }
+        }
+
+        // Envio de Texto
         function enviarMensagemTexto() {
             const input = document.getElementById('mensagemInput');
             const texto = input.value.trim();
@@ -514,15 +668,23 @@
             if (texto === "") return;
 
             if (socket && socket.readyState === WebSocket.OPEN) {
-                try {
-                    socket.send(JSON.stringify({ tipo: 'texto', conteudo: texto }));
-                    exibirMensagem(texto, 'texto', 'mensagem-minha');
-                    input.value = "";
-                } catch (err) {
-                    alert("Falha ao enviar mensagem. Tente novamente.");
-                }
+                const pacote = {
+                    id: 'msg_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
+                    remetente: idUsuario,
+                    tipoMidia: 'texto',
+                    conteudo: texto,
+                    lida: false
+                };
+
+                socket.send(JSON.stringify({
+                    tipoEvent: 'nova_mensagem',
+                    conteudo: pacote
+                }));
+
+                renderizarMensagem(pacote, true);
+                input.value = "";
             } else {
-                alert("Conexão indisponível no momento. Aguarde a reconexão.");
+                alert("Conexão indisponível. Aguarde a reconexão.");
             }
         }
 
@@ -533,7 +695,7 @@
             }
         });
 
-        // GERENCIAMENTO DE MÍDIA (IMAGENS)
+        // Gerenciamento de Fotos
         function toggleMenuFoto() {
             const menu = document.getElementById('menuFoto');
             menu.classList.toggle('oculto');
@@ -553,9 +715,8 @@
             const arquivo = e.target.files[0];
             if (!arquivo) return;
 
-            // Limite de 8MB para envio de imagem
             if (arquivo.size > 8 * 1024 * 1024) {
-                alert("A imagem selecionada é muito grande. Escolha um arquivo de até 8MB.");
+                alert("A imagem deve ter no máximo 8MB.");
                 this.value = "";
                 return;
             }
@@ -564,14 +725,20 @@
             leitor.onload = function(evt) {
                 const base64 = evt.target.result;
                 if (socket && socket.readyState === WebSocket.OPEN) {
-                    try {
-                        socket.send(JSON.stringify({ tipo: 'imagem', conteudo: base64 }));
-                        exibirMensagem(base64, 'imagem', 'mensagem-minha');
-                    } catch (err) {
-                        alert("Erro ao transmitir a imagem.");
-                    }
-                } else {
-                    alert("Servidor desconectado. Não foi possível enviar a imagem.");
+                    const pacote = {
+                        id: 'msg_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
+                        remetente: idUsuario,
+                        tipoMidia: 'imagem',
+                        conteudo: base64,
+                        lida: false
+                    };
+
+                    socket.send(JSON.stringify({
+                        tipoEvent: 'nova_mensagem',
+                        conteudo: pacote
+                    }));
+
+                    renderizarMensagem(pacote, true);
                 }
             };
             leitor.readAsDataURL(arquivo);
@@ -581,14 +748,22 @@
         document.getElementById('cameraInput').addEventListener('change', processarArquivoImagem);
         document.getElementById('galeriaInput').addEventListener('change', processarArquivoImagem);
 
-        // GERENCIAMENTO DE ÁUDIO COM MEDIARECORDER
+        // Gravação e Envio de Áudio
         async function toggleGravacaoAudio() {
             const btnAudio = document.getElementById('btnAudio');
 
             if (!gravandoAudio) {
                 try {
                     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                    mediaRecorder = new MediaRecorder(stream);
+                    
+                    let opcoesFormato = {};
+                    if (MediaRecorder.isTypeSupported('audio/webm')) {
+                        opcoesFormato = { mimeType: 'audio/webm' };
+                    } else if (MediaRecorder.isTypeSupported('audio/mp4')) {
+                        opcoesFormato = { mimeType: 'audio/mp4' };
+                    }
+
+                    mediaRecorder = new MediaRecorder(stream, opcoesFormato);
                     pedacosAudio = [];
 
                     mediaRecorder.ondataavailable = (e) => {
@@ -596,25 +771,26 @@
                     };
 
                     mediaRecorder.onstop = () => {
-                        const blobAudio = new Blob(pedacosAudio, { type: 'audio/webm' });
+                        const blobAudio = new Blob(pedacosAudio, { type: mediaRecorder.mimeType || 'audio/webm' });
                         
-                        if (blobAudio.size > 8 * 1024 * 1024) {
-                            alert("O áudio gravado é muito longo.");
-                            return;
-                        }
-
                         const leitor = new FileReader();
                         leitor.onload = function(evt) {
                             const base64Audio = evt.target.result;
                             if (socket && socket.readyState === WebSocket.OPEN) {
-                                try {
-                                    socket.send(JSON.stringify({ tipo: 'audio', conteudo: base64Audio }));
-                                    exibirMensagem(base64Audio, 'audio', 'mensagem-minha');
-                                } catch (err) {
-                                    alert("Erro ao enviar o áudio.");
-                                }
-                            } else {
-                                alert("Falha na conexão. Áudio não enviado.");
+                                const pacote = {
+                                    id: 'msg_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
+                                    remetente: idUsuario,
+                                    tipoMidia: 'audio',
+                                    conteudo: base64Audio,
+                                    lida: false
+                                };
+
+                                socket.send(JSON.stringify({
+                                    tipoEvent: 'nova_mensagem',
+                                    conteudo: pacote
+                                }));
+
+                                renderizarMensagem(pacote, true);
                             }
                         };
                         leitor.readAsDataURL(blobAudio);
@@ -626,7 +802,7 @@
                     btnAudio.classList.add('gravando');
                     btnAudio.innerText = "⏹️";
                 } catch (err) {
-                    alert("Permissão de microfone negada ou indisponível.");
+                    alert("Permissão para microfone negada ou indisponível.");
                 }
             } else {
                 if (mediaRecorder && mediaRecorder.state !== "inactive") {
@@ -636,29 +812,6 @@
                 btnAudio.classList.remove('gravando');
                 btnAudio.innerText = "🎤";
             }
-        }
-
-        // RENDERIZAÇÃO DE MENSAGENS NA TELA
-        function exibirMensagem(conteudo, tipo, classeCSS) {
-            const area = document.getElementById('areaMensagens');
-            const balao = document.createElement('div');
-            balao.classList.add('mensagem', classeCSS);
-
-            if (tipo === 'texto') {
-                balao.innerText = conteudo;
-            } else if (tipo === 'imagem') {
-                const img = document.createElement('img');
-                img.src = conteudo;
-                balao.appendChild(img);
-            } else if (tipo === 'audio') {
-                const audio = document.createElement('audio');
-                audio.src = conteudo;
-                audio.controls = true;
-                balao.appendChild(audio);
-            }
-
-            area.appendChild(balao);
-            area.scrollTop = area.scrollHeight;
         }
     </script>
 </body>
