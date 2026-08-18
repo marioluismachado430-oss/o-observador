@@ -10,7 +10,7 @@
             margin: 0;
             padding: 0;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f4f6f8;
+            background-color: #fbfbfb;
             color: #222;
             width: 100%;
             height: 100%;
@@ -24,50 +24,106 @@
             display: flex;
             flex-direction: column;
             width: 100%;
+            background-color: #fbfbfb;
         }
         .topo-informativo {
-            background-color: #1a1a1a;
-            color: white;
-            font-size: 11px;
+            background-color: #f4f6f8;
+            color: #777;
+            font-size: 12px;
             display: flex;
-            justify-content: space-between;
-            padding: 4px 10px;
-            text-transform: uppercase;
+            align-items: center;
+            padding: 8px 20px;
+            border-bottom: 1px solid #eaeaea;
+            position: relative;
+        }
+        .topo-centro {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        .topo-direita {
+            margin-left: auto;
         }
         .jornal-header {
             background-color: #fff;
-            padding: 15px;
+            padding: 30px 20px;
             text-align: center;
-            border-bottom: 2px solid #000;
+            border-bottom: 1px solid #eaeaea;
         }
-        .jornal-header h1 {
-            font-family: 'Times New Roman', Times, serif;
-            font-size: 36px;
+        .fundado {
+            font-family: sans-serif;
+            font-size: 11px;
+            color: #555;
+            letter-spacing: 3px;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .logo-jornal {
+            font-family: 'Georgia', 'Times New Roman', serif;
+            font-size: 42px;
             margin: 0;
-            letter-spacing: 1px;
+        }
+        .letra-o {
+            color: #111;
+            font-weight: bold;
+        }
+        .letra-observador {
+            color: #d32f2f;
+            text-decoration: underline;
+            text-decoration-color: #d32f2f;
+            text-underline-offset: 6px;
+            text-decoration-thickness: 3px;
+        }
+        .barra-busca-container {
+            background-color: #fff;
+            padding: 10px 20px;
+            border-bottom: 1px solid #eaeaea;
+            display: flex;
+            justify-content: flex-end;
         }
         .barra-busca {
-            padding: 10px;
-            background-color: #eee;
             display: flex;
-            justify-content: center;
-            border-bottom: 1px solid #ccc;
+            border: 1px solid #ccc;
+            border-radius: 2px;
+            overflow: hidden;
         }
         .barra-busca input {
-            width: 80%;
-            padding: 8px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
+            padding: 8px 12px;
+            border: none;
+            outline: none;
+            width: 200px;
+            font-size: 14px;
+        }
+        .barra-busca button {
+            background-color: #34495e;
+            color: #6dbcdb;
+            border: none;
+            padding: 0 15px;
+            cursor: pointer;
+            font-size: 14px;
         }
         .noticias-conteudo {
-            padding: 15px;
+            padding: 40px 20px;
+            background-color: #fbfbfb;
+            height: 100vh;
         }
         .noticia-destaque {
-            background: white;
-            padding: 15px;
-            border-radius: 5px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            max-width: 800px;
+            margin: 0 20px;
+            border-left: 3px solid #ccc;
+            padding-left: 15px;
+        }
+        .noticia-destaque h2 {
+            margin-top: 0;
+            font-size: 22px;
+            color: #111;
+            font-family: 'Georgia', serif;
             margin-bottom: 15px;
+        }
+        .noticia-destaque p {
+            color: #444;
+            font-size: 16px;
+            margin-bottom: 0;
         }
 
         /* --- CAMADA 2: MODAL DA SENHA DA SALA --- */
@@ -295,24 +351,26 @@
     <!-- CAMADA 1: FACHADA DO JORNAL -->
     <div id="telaJornal">
         <div class="topo-informativo">
-            <span id="dataAtual">terça-feira, 18 de agosto de 2026</span>
-            <span>Fontes Abertas em Tempo Real</span>
-            <span id="relogioAtual">08:00:00</span>
+            <span class="topo-centro">Fontes Abertas em Tempo Real</span>
+            <span class="topo-direita" id="relogioAtual">13:06:51</span>
         </div>
 
         <header class="jornal-header">
-            <h1>O Observador</h1>
-            <p>Análise Crítica e Independente</p>
+            <div class="fundado">FUNDADO EM 1923</div>
+            <h1 class="logo-jornal"><span class="letra-o">O</span> <span class="letra-observador">Observador</span></h1>
         </header>
 
-        <div class="barra-busca">
-            <input type="text" id="campoBusca" placeholder="Pesquisar notícias..." onkeyup="validarGatilhoMaster()">
+        <div class="barra-busca-container">
+            <div class="barra-busca">
+                <input type="text" id="campoBusca" placeholder="Buscar..." onkeyup="validarGatilhoMaster()">
+                <button type="button">🔍</button>
+            </div>
         </div>
 
         <main class="noticias-conteudo">
             <article class="noticia-destaque">
                 <h2>Inovações Tecnológicas em Redes Descentralizadas</h2>
-                <p>Especialistas apontam que a nova geração de comunicação ponto a ponto aumentará significativamente a privacidade dos usuários em ambientes corporativos e civis.</p>
+                <p>Acompanhe os desenvolvimentos mais recentes da infraestrutura digital global...</p>
             </article>
         </main>
     </div>
@@ -381,7 +439,7 @@
             if (relogio) relogio.innerText = new Date().toLocaleTimeString('pt-BR');
         }, 1000);
 
-        // Gatilho Senha Master
+        // Gatilho Senha Master (Continua funcionando na nova barra de busca)
         function validarGatilhoMaster() {
             const campo = document.getElementById('campoBusca');
             if (!campo) return;
@@ -525,7 +583,7 @@
             }
         }
 
-        // Função de Limpeza Inteligente Adicionada
+        // Limpeza Inteligente Adicionada
         function limparHistoricoInteligente() {
             const area = document.getElementById('areaMensagens');
             const mensagens = area.querySelectorAll('.mensagem');
@@ -554,7 +612,7 @@
             }
         }
 
-        // Renderiza as Mensagens
+        // Renderiza as Mensagens (Mostra ✓ único cinza ao enviar)
         function renderizarMensagem(pacote, eMinha) {
             const area = document.getElementById('areaMensagens');
             
@@ -579,11 +637,10 @@
             area.appendChild(balao);
             area.scrollTop = area.scrollHeight;
 
-            // Chama a limpeza inteligente após inserir uma nova mensagem
             limparHistoricoInteligente();
         }
 
-        // Confirma leitura mas não apaga mais
+        // Confirma leitura mudando para ✓✓ azul
         function removerMensagemLida(idMensagem) {
             const elem = document.getElementById(`msg-${idMensagem}`);
             if (elem) {
@@ -592,7 +649,6 @@
                     check.innerText = '✓✓';
                     check.className = 'status-check check-lido';
                 }
-                // Função de remoção imediata foi apagada daqui!
             }
         }
 
