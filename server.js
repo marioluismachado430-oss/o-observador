@@ -1,59 +1,124 @@
-// server.js - Servidor com Histórico Persistente (Estilo WhatsApp)
+/**
+ * server.js - Servidor de Comunicação Real-Time para "O Observador"
+ * Responsável pelo gerenciamento de WebSockets, histórico de mensagens,
+ * confirmações de leitura e sincronização de estado entre dispositivos.
+ */
+
 const express = require('express');
 const http = require('http');
 const WebSocket = require('ws');
 
 const app = express();
 const servidor = http.createServer(app);
-const wss = new WebSocket.Server({ server: servidor });
 
-// Array para guardar o histórico de mensagens enquanto o servidor estiver ativo
+// Configuração do servidor WebSocket com suporte a mídias de até 10MB
+const wss = new WebSocket.Server({ 
+    server: servidor,
+    maxPayload: 10 * 1024 * 1024 
+});
+
+// Estrutura de histórico de mensagens mantida na memória do servidor
 let historicoMensagens = [];
 
-// Disponibiliza os ficheiros da pasta 'public'
+// Serve os arquivos estáticos da pasta 'public' (HTML, CSS, JS)
 app.use(express.static('public'));
 
 wss.on('connection', (ws) => {
-    console.log('Novo dispositivo conectado. A enviar histórico...');
+    ws.isAlive = true;
 
-    // 1. Envia todo o histórico armazenado para o novo cliente assim que ele se conecta
-    historicoMensagens.forEach((msgAntiga) => {
-        if (ws.readyState === WebSocket.OPEN) {
-            ws.send(JSON.stringify(msgAntiga));
-        }
-    });
+    // Resposta ao sinal de batimento cardíaco (ping/pong) para manter conexão ativa
+    ws.on('pong', () => { ws.isAlive = true; });
 
-    // 2. Ouve novas mensagens enviadas por qualquer cliente
+    // Envia o histórico existente assim que o dispositivo se conecta
+    try {
+        ws.send(JSON.stringify({
+            tipo: 'historico',
+            conteudo: historicoMensagens
+        }));
+    } catch (erro) {
+        console.error("Erro ao enviar histórico inicial:", erro);
+    }
+
+    // Processamento de mensagens recebidas dos clientes
     ws.on('message', (dadosBrutos) => {
         try {
-            const mensagemObj = JSON.parse(dadosBrutos);
-            
-            // Guarda a mensagem no histórico do servidor
-            historicoMensagens.push(mensagemObj);
+            const pacote = JSON.parse(dadosBrutos);
 
-            // Limita o histórico às últimas 100 mensagens para poupar memória do servidor
-            if (historicoMensagens.length > 100) {
-                historicoMensagens.shift();
+            // 1. Tratamento de Novas Mensagens (Texto, Imagem, Áudio)
+            if (pacote.tipoEvent === 'nova_mensagem') {
+                historicoMensagens.push(pacote.conteudo);
+                if (historicoMensagens.length > 100) historicoMensagens.shift();
+
+                // Retransmite para todos os clientes conectados
+                wss.clients.forEach((cliente) => {
+                    if (cliente.readyState === WebSocket.OPEN) {
+                        cliente.send(JSON.stringify({
+                            tipo: 'nova_mensagem',
+                            conteudo: pacote.conteudo
+                        }));
+                    }
+                });
             }
 
-            // Retransmite a mensagem para todos os *outros* clientes conectados em tempo real
-            wss.clients.forEach((cliente) => {
-                if (cliente !== ws && cliente.readyState === WebSocket.OPEN) {
-                    cliente.send(JSON.stringify(mensagemObj));
+            // 2. Tratamento de Confirmação de Leitura e Remoção
+            else if (pacote.tipoEvent === 'confirmar_leitura') {
+                const idMsg = pacote.idMensagem;
+                
+                // Atualiza o estado no histórico
+                const msgIndex = historicoMensagens.findIndex(m => m.id === idMsg);
+                if (msgIndex !== -1) {
+                    historicoMensagens[msgIndex].lida = true;
                 }
-            });
+
+                // Notifica todos os clientes para atualizar status e remover a mensagem
+                wss.clients.forEach((cliente) => {
+                    if (cliente.readyState === WebSocket.OPEN) {
+                        cliente.send(JSON.stringify({
+                            tipo: 'mensagem_lida_confirmada',
+                            idMensagem: idMsg
+                        }));
+                    }
+                });
+            }
+
+            // 3. Tratamento de Indicador de "Digitando..."
+            else if (pacote.tipoEvent === 'digitando') {
+                wss.clients.forEach((cliente) => {
+                    if (cliente !== ws && cliente.readyState === WebSocket.OPEN) {
+                        cliente.send(JSON.stringify({
+                            tipo: 'usuario_digitando',
+                            remetente: pacote.remetente,
+                            estado: pacote.estado
+                        }));
+                    }
+                });
+            }
+
         } catch (erro) {
-            console.error("Erro ao processar mensagem:", erro);
+            console.error("Erro ao processar pacote no servidor:", erro);
         }
     });
 
     ws.on('close', () => {
-        console.log('Dispositivo desconectado.');
+        console.log("Dispositivo desconectado.");
     });
 });
 
-// Inicialização da porta para o Render
-const PORTA = process.env.PORTA || process.env.PORT || 3000;
+// Monitoramento de conexões ativas a cada 20 segundos
+const intervalo = setInterval(() => {
+    wss.clients.forEach((ws) => {
+        if (ws.isAlive === false) return ws.terminate();
+        ws.isAlive = false;
+        ws.ping();
+    });
+}, 20000);
+
+wss.on('close', () => {
+    clearInterval(intervalo);
+});
+
+// Inicialização na porta configurada pelo ambiente ou porta padrão 3000
+const PORTA = process.env.PORT || 3000;
 servidor.listen(PORTA, () => {
-    console.log(`Servidor a correr na porta ${PORTA}`);
+    console.log(`Servidor O Observador rodando na porta ${PORTA}`);
 });
