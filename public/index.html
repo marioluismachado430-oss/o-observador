@@ -1,4 +1,3 @@
-<!-- public/index.html -->
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -15,7 +14,7 @@
             color: #222;
             width: 100%;
             height: 100%;
-            overflow: hidden;
+            overflow-x: hidden;
         }
 
         .oculto { display: none !important; }
@@ -25,154 +24,104 @@
             display: flex;
             flex-direction: column;
             width: 100%;
-            height: 100%;
-            background-color: #f4f6f8;
         }
-
         .topo-informativo {
-            display: flex;
-            justify-content: space-between;
-            padding: 6px 15px;
-            font-size: 11px;
-            color: #666;
-            border-bottom: 1px solid #e2e8f0;
-        }
-
-        .jornal-header {
-            text-align: center;
-            padding: 10px 15px 5px 15px;
-        }
-        .fundado {
-            font-size: 10px;
-            letter-spacing: 2px;
-            color: #555;
-            margin-bottom: 3px;
-            font-weight: 600;
-        }
-        .titulo-principal {
-            font-family: 'Georgia', serif;
-            font-size: 32px;
-            margin: 0;
-            font-weight: bold;
-            color: #111;
-        }
-        .titulo-principal span {
-            color: #d32f2f;
-            text-decoration: underline;
-        }
-
-        .barra-navegacao {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px 15px;
-            border-top: 1px solid #dcdfe6;
-            border-bottom: 1px solid #dcdfe6;
-        }
-        .links-menu a {
-            text-decoration: none;
-            color: #004085;
-            font-size: 14px;
-            margin-right: 10px;
-        }
-
-        .busca-container {
-            display: flex;
-            align-items: center;
-        }
-        .busca-container input {
-            padding: 8px 10px;
-            border: 1px solid #cbd5e1;
-            border-radius: 4px 0 0 4px;
-            font-size: 13px;
-            outline: none;
-            width: 130px;
-        }
-        .busca-container button {
-            background-color: #2c3e50;
+            background-color: #1a1a1a;
             color: white;
-            border: 1px solid #2c3e50;
-            padding: 8px 10px;
-            border-radius: 0 4px 4px 0;
-            cursor: pointer;
+            font-size: 11px;
+            display: flex;
+            justify-content: space-between;
+            padding: 4px 10px;
+            text-transform: uppercase;
         }
-
-        .conteudo-jornal {
+        .jornal-header {
+            background-color: #fff;
             padding: 15px;
-            max-width: 1000px;
-            margin: 0 auto;
-            flex: 1;
-            overflow-y: auto;
+            text-align: center;
+            border-bottom: 2px solid #000;
         }
-        .bloco-manchete {
-            border-left: 3px solid #cbd5e1;
-            padding-left: 12px;
+        .jornal-header h1 {
+            font-family: 'Times New Roman', Times, serif;
+            font-size: 36px;
+            margin: 0;
+            letter-spacing: 1px;
+        }
+        .barra-busca {
+            padding: 10px;
+            background-color: #eee;
+            display: flex;
+            justify-content: center;
+            border-bottom: 1px solid #ccc;
+        }
+        .barra-busca input {
+            width: 80%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .noticias-conteudo {
+            padding: 15px;
+        }
+        .noticia-destaque {
+            background: white;
+            padding: 15px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
             margin-bottom: 15px;
-        }
-        .bloco-manchete h2 {
-            font-family: 'Georgia', serif;
-            margin: 0 0 8px 0;
-            font-size: 20px;
         }
 
         /* --- CAMADA 2: MODAL DA SENHA DA SALA --- */
         #modalSala {
             position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.7);
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9);
             display: flex;
             justify-content: center;
             align-items: center;
-            z-index: 1000;
+            z-index: 100;
         }
         .caixa-modal {
-            background: white;
+            background: #fff;
             padding: 20px;
             border-radius: 8px;
             text-align: center;
-            width: 85%;
-            max-width: 300px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            width: 80%;
         }
-        .caixa-modal h3 { margin-top: 0; color: #2c3e50; }
         .caixa-modal input {
             width: 100%;
             padding: 10px;
-            margin: 12px 0;
+            margin: 10px 0;
             border: 1px solid #ccc;
             border-radius: 4px;
-            font-size: 16px;
-            text-align: center;
         }
         .caixa-modal button {
-            background: #075e54;
+            background: #2b5278;
             color: white;
             border: none;
-            padding: 10px;
+            padding: 10px 20px;
             border-radius: 4px;
-            font-size: 16px;
             cursor: pointer;
             width: 100%;
         }
 
         /* --- CAMADA 3: CHAT PRIVADO --- */
         #telaChat {
-            position: relative;
-            width: 100%;
-            height: 100%;
-            background-color: #0e1621;
-            color: white;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
             display: flex;
             flex-direction: column;
+            background-color: #0e1621;
+            z-index: 200;
         }
         .chat-header {
             background-color: #17212b;
-            padding: 12px 15px;
+            color: white;
+            padding: 10px 15px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 1px solid #242f3d;
-            flex-shrink: 0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+            z-index: 10;
         }
         .status-online { color: #40b3e0; font-weight: bold; font-size: 12px; }
         .status-offline { color: #e74c3c; font-weight: bold; font-size: 12px; }
@@ -190,7 +139,6 @@
 
         .area-mensagens {
             flex: 1;
-            width: 100%;
             padding: 15px;
             overflow-y: auto;
             display: flex;
@@ -214,7 +162,7 @@
             transform: scale(0.9);
         }
 
-        /* ESTILOS DE CORES (Minha = Azul Escuro / Outros = Cinza Escuro) */
+        /* ESTILOS DE CORES */
         .mensagem-minha {
             background-color: #2b5278;
             align-self: flex-end;
@@ -242,12 +190,11 @@
         .mensagem img {
             max-width: 100%;
             border-radius: 6px;
-            margin-top: 4px;
-            display: block;
+            margin-bottom: 5px;
         }
         .mensagem audio {
-            width: 100%;
-            max-width: 240px;
+            max-width: 200px;
+            height: 30px;
             margin-top: 4px;
         }
 
@@ -263,47 +210,74 @@
         .chat-input-area {
             position: sticky;
             bottom: 0;
-            left: 0;
-            width: 100%;
             background-color: #17212b;
             padding: 10px;
             display: flex;
-            gap: 8px;
             align-items: center;
-            border-top: 1px solid #242f3d;
-            flex-shrink: 0;
+            gap: 8px;
+            box-shadow: 0 -1px 3px rgba(0,0,0,0.2);
             z-index: 10;
         }
         .chat-input-area input[type="text"] {
             flex: 1;
-            min-width: 0;
-            padding: 10px 14px;
+            padding: 10px;
             border: none;
             border-radius: 20px;
-            font-size: 15px;
-            outline: none;
             background-color: #242f3d;
             color: white;
+            outline: none;
+        }
+        .chat-input-area input[type="text"]::placeholder {
+            color: #7b8a97;
         }
         .btn-acao {
-            background-color: #242f3d;
-            color: #40b3e0;
+            background-color: transparent;
             border: none;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            min-width: 40px;
-            font-size: 16px;
+            font-size: 20px;
+            color: #7b8a97;
             cursor: pointer;
+            padding: 5px;
+            border-radius: 50%;
+            transition: color 0.2s;
+        }
+        .btn-acao:hover {
+            color: #40b3e0;
+        }
+        .btn-enviar {
+            background-color: #2b5278;
+            color: white;
+            font-size: 16px;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
             display: flex;
             justify-content: center;
             align-items: center;
-            flex-shrink: 0;
         }
-        .btn-enviar {
-            background-color: #5288c1;
+        
+        /* MENU FLUTUANTE DE FOTO */
+        .menu-foto {
+            position: absolute;
+            bottom: 60px;
+            left: 10px;
+            background-color: #242f3d;
+            border-radius: 8px;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+        .menu-foto button {
+            background: none;
+            border: none;
             color: white;
+            font-size: 14px;
+            text-align: left;
+            cursor: pointer;
+            padding: 5px;
         }
+        
         .gravando {
             background-color: #e74c3c !important;
             color: white !important;
@@ -314,30 +288,6 @@
             50% { transform: scale(1.1); }
             100% { transform: scale(1); }
         }
-
-        #menuFoto {
-            position: fixed;
-            bottom: 70px;
-            left: 15px;
-            background: #17212b;
-            border: 1px solid #242f3d;
-            border-radius: 8px;
-            display: flex;
-            flex-direction: column;
-            z-index: 2000;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
-        }
-        #menuFoto button {
-            background: none;
-            border: none;
-            color: white;
-            padding: 12px 20px;
-            text-align: left;
-            font-size: 14px;
-            cursor: pointer;
-            border-bottom: 1px solid #242f3d;
-        }
-        #menuFoto button:last-child { border-bottom: none; }
     </style>
 </head>
 <body>
@@ -351,27 +301,19 @@
         </div>
 
         <header class="jornal-header">
-            <div class="fundado">FUNDADO EM 1923</div>
-            <h1 class="titulo-principal">O <span>Observador</span></h1>
+            <h1>O Observador</h1>
+            <p>Análise Crítica e Independente</p>
         </header>
 
-        <nav class="barra-navegacao">
-            <div class="links-menu">
-                <a href="#">Geral</a>
-                <a href="#">Edições</a>
-            </div>
-            
-            <div class="busca-container">
-                <input type="text" id="campoBusca" placeholder="Buscar..." autocomplete="off">
-                <button type="button" onclick="validarGatilhoMaster()">🔍</button>
-            </div>
-        </nav>
+        <div class="barra-busca">
+            <input type="text" id="campoBusca" placeholder="Pesquisar notícias..." onkeyup="validarGatilhoMaster()">
+        </div>
 
-        <main class="conteudo-jornal">
-            <section class="bloco-manchete">
+        <main class="noticias-conteudo">
+            <article class="noticia-destaque">
                 <h2>Inovações Tecnológicas em Redes Descentralizadas</h2>
-                <p>Acompanhe os desenvolvimentos mais recentes da infraestrutura digital global...</p>
-            </section>
+                <p>Especialistas apontam que a nova geração de comunicação ponto a ponto aumentará significativamente a privacidade dos usuários em ambientes corporativos e civis.</p>
+            </article>
         </main>
     </div>
 
@@ -379,9 +321,8 @@
     <div id="modalSala" class="oculto">
         <div class="caixa-modal">
             <h3>Autenticação de Sala</h3>
-            <p style="font-size: 13px; color: #666;">Digite a senha da sala do chat:</p>
-            <input type="password" id="senhaSalaInput" placeholder="Senha da Sala" autocomplete="off">
-            <button type="button" onclick="validarSenhaSala()">Acessar Sala</button>
+            <input type="password" id="senhaSalaInput" placeholder="Senha da Sessão">
+            <button onclick="validarSenhaSala()">Acessar</button>
         </div>
     </div>
 
@@ -396,7 +337,7 @@
                 <button type="button" class="btn-panico" onclick="botaoPanicoSair()" title="Sair Imediatamente">🔒 Trancar</button>
             </div>
         </header>
-        
+
         <main id="areaMensagens" class="area-mensagens"></main>
         
         <div id="indicadorDigitando" class="indicador-digitando"></div>
@@ -404,15 +345,15 @@
         <footer class="chat-input-area">
             <input type="file" id="cameraInput" style="display: none;" accept="image/*" capture="environment">
             <input type="file" id="galeriaInput" style="display: none;" accept="image/*">
-
-            <div id="menuFoto" class="oculto">
-                <button type="button" onclick="abrirCamera()">📷 Tirar Foto</button>
-                <button type="button" onclick="abrirGaleria()">🖼️ Escolher da Galeria</button>
+            
+            <div id="menuFoto" class="menu-foto oculto">
+                <button onclick="document.getElementById('cameraInput').click(); toggleMenuFoto();">📷 Câmera</button>
+                <button onclick="document.getElementById('galeriaInput').click(); toggleMenuFoto();">🖼️ Galeria</button>
             </div>
 
             <button type="button" class="btn-acao" onclick="toggleMenuFoto()" title="Enviar Imagem">📷</button>
             <button type="button" id="btnAudio" class="btn-acao" onclick="toggleGravacaoAudio()" title="Gravar Áudio">🎤</button>
-            
+
             <input type="text" id="mensagemInput" placeholder="Mensagem..." oninput="notificarDigitando()">
             <button type="button" class="btn-acao btn-enviar" onclick="enviarMensagemTexto()">➤</button>
         </footer>
@@ -423,8 +364,8 @@
         const SENHA_MASTER = "106230";
         const SENHA_SALA = "sala123";  
         const TEMPO_INATIVIDADE = 120000; // 2 minutos
+        const LIMITE_MENSAGENS = 10; // Acúmulo máximo antes de começar a limpar mensagens antigas
 
-        // ID único por sessão para diferenciar remetente e destinatário
         const idUsuario = 'user_' + Math.random().toString(36).substr(2, 9);
 
         let cronometroInatividade;
@@ -434,61 +375,43 @@
         let gravandoAudio = false;
         let tempoDigitandoTimeout;
 
-        // Atualização do relógio superior
+        // Atualização do relógio
         setInterval(() => {
             const relogio = document.getElementById('relogioAtual');
             if (relogio) relogio.innerText = new Date().toLocaleTimeString('pt-BR');
         }, 1000);
 
-        // Validação da Senha Master
+        // Gatilho Senha Master
         function validarGatilhoMaster() {
             const campo = document.getElementById('campoBusca');
             if (!campo) return;
 
-            if (campo.value.trim() === SENHA_MASTER) {
+            if (campo.value === SENHA_MASTER) {
                 campo.value = "";
+                document.getElementById('telaJornal').classList.add('oculto');
                 document.getElementById('modalSala').classList.remove('oculto');
-            } else {
-                alert("Termo não encontrado.");
-                campo.value = "";
+                document.getElementById('senhaSalaInput').focus();
             }
         }
 
-        document.getElementById('campoBusca').addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                validarGatilhoMaster();
-            }
-        });
-
-        // Validação da Senha da Sala
+        // Senha Sala Privada
         function validarSenhaSala() {
             const inputSala = document.getElementById('senhaSalaInput');
             if (!inputSala) return;
 
-            if (inputSala.value.trim() === SENHA_SALA) {
+            if (inputSala.value === SENHA_SALA) {
                 inputSala.value = "";
-                
                 document.getElementById('modalSala').classList.add('oculto');
-                document.getElementById('telaJornal').classList.add('oculto');
                 document.getElementById('telaChat').classList.remove('oculto');
-
+                
                 iniciarConexaoChat();
                 iniciarMonitoramentoInatividade();
             } else {
-                alert("Senha incorreta!");
-                inputSala.value = "";
+                alert("Senha da sala incorreta.");
             }
         }
 
-        document.getElementById('senhaSalaInput').addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                validarSenhaSala();
-            }
-        });
-
-        // Botão de Pânico / Trancar Sala
+        // Botão Trancar
         function botaoPanicoSair() {
             bloquearPorInatividade();
         }
@@ -497,9 +420,8 @@
             document.getElementById('telaChat').classList.add('oculto');
             document.getElementById('modalSala').classList.add('oculto');
             document.getElementById('telaJornal').classList.remove('oculto');
-
-            if (socket) socket.close();
             pararMonitoramentoInatividade();
+            if (socket) socket.close();
         }
 
         function reiniciarCronometro() {
@@ -511,7 +433,6 @@
             reiniciarCronometro();
             window.addEventListener('mousemove', reiniciarCronometro);
             window.addEventListener('keypress', reiniciarCronometro);
-            window.addEventListener('click', reiniciarCronometro);
             window.addEventListener('touchstart', reiniciarCronometro);
         }
 
@@ -519,7 +440,6 @@
             clearTimeout(cronometroInatividade);
             window.removeEventListener('mousemove', reiniciarCronometro);
             window.removeEventListener('keypress', reiniciarCronometro);
-            window.removeEventListener('click', reiniciarCronometro);
             window.removeEventListener('touchstart', reiniciarCronometro);
         }
 
@@ -530,54 +450,47 @@
 
             socket.onopen = () => {
                 const status = document.getElementById('statusConexao');
-                if (status) {
-                    status.innerText = "Online";
-                    status.className = "status-online";
-                }
+                status.innerText = "Online";
+                status.className = "status-online";
             };
 
             socket.onclose = () => {
                 const status = document.getElementById('statusConexao');
-                if (status) {
-                    status.innerText = "Reconectando...";
-                    status.className = "status-offline";
-                }
+                status.innerText = "Desconectado";
+                status.className = "status-offline";
                 setTimeout(iniciarConexaoChat, 3000);
+            };
+
+            socket.onerror = (erro) => {
+                console.error("Erro no WebSocket:", erro);
             };
 
             socket.onmessage = (evento) => {
                 try {
                     const resposta = JSON.parse(evento.data);
 
-                    // Trata Histórico Inicial (Limpa a tela e carrega)
                     if (resposta.tipo === 'historico') {
                         const area = document.getElementById('areaMensagens');
                         area.innerHTML = '';
-                        
                         resposta.conteudo.forEach(msg => {
                             if (!msg.lida) {
                                 renderizarMensagem(msg, msg.remetente === idUsuario);
                             }
                         });
                     } 
-                    // Trata Nova Mensagem Recebida
                     else if (resposta.tipo === 'nova_mensagem') {
                         const msg = resposta.conteudo;
                         if (msg.remetente !== idUsuario) {
                             renderizarMensagem(msg, false);
-                            
-                            // Confirma leitura automaticamente ao receber/visualizar
                             socket.send(JSON.stringify({
                                 tipoEvent: 'confirmar_leitura',
                                 idMensagem: msg.id
                             }));
                         }
                     }
-                    // Trata Confirmação de Leitura e Remoção Automática
                     else if (resposta.tipo === 'mensagem_lida_confirmada') {
                         removerMensagemLida(resposta.idMensagem);
                     }
-                    // Trata Indicador de "Digitando..."
                     else if (resposta.tipo === 'usuario_digitando') {
                         const elem = document.getElementById('indicadorDigitando');
                         if (resposta.estado) {
@@ -592,7 +505,7 @@
             };
         }
 
-        // Notificar que está digitando
+        // Digitando...
         function notificarDigitando() {
             if (socket && socket.readyState === WebSocket.OPEN) {
                 socket.send(JSON.stringify({
@@ -612,11 +525,39 @@
             }
         }
 
-        // Renderização Visual da Mensagem
+        // Função de Limpeza Inteligente Adicionada
+        function limparHistoricoInteligente() {
+            const area = document.getElementById('areaMensagens');
+            const mensagens = area.querySelectorAll('.mensagem');
+
+            if (mensagens.length > LIMITE_MENSAGENS) {
+                const mensagemMaisVelha = mensagens[0];
+                const ehMinha = mensagemMaisVelha.classList.contains('mensagem-minha');
+                const classeEsperada = ehMinha ? 'mensagem-outros' : 'mensagem-minha';
+                
+                let houveResposta = false;
+                for (let i = 1; i < mensagens.length; i++) {
+                    if (mensagens[i].classList.contains(classeEsperada)) {
+                        houveResposta = true;
+                        break;
+                    }
+                }
+
+                if (houveResposta && !mensagemMaisVelha.classList.contains('saindo')) {
+                    mensagemMaisVelha.classList.add('saindo');
+                    setTimeout(() => {
+                        if (mensagemMaisVelha.parentNode) {
+                            mensagemMaisVelha.remove();
+                        }
+                    }, 500);
+                }
+            }
+        }
+
+        // Renderiza as Mensagens
         function renderizarMensagem(pacote, eMinha) {
             const area = document.getElementById('areaMensagens');
             
-            // Evita duplicação caso a mensagem já esteja na tela
             if (document.getElementById(`msg-${pacote.id}`)) return;
 
             const balao = document.createElement('div');
@@ -632,15 +573,17 @@
                 conteudoHTML = `<audio src="${pacote.conteudo}" controls></audio>`;
             }
 
-            // Status Check (✓/✓✓)
             const statusIcone = eMinha ? `<span class="status-check check-enviado" id="check-${pacote.id}">✓</span>` : '';
             balao.innerHTML = conteudoHTML + statusIcone;
 
             area.appendChild(balao);
             area.scrollTop = area.scrollHeight;
+
+            // Chama a limpeza inteligente após inserir uma nova mensagem
+            limparHistoricoInteligente();
         }
 
-        // Remoção da mensagem após ser lida
+        // Confirma leitura mas não apaga mais
         function removerMensagemLida(idMensagem) {
             const elem = document.getElementById(`msg-${idMensagem}`);
             if (elem) {
@@ -649,18 +592,11 @@
                     check.innerText = '✓✓';
                     check.className = 'status-check check-lido';
                 }
-
-                // Efeito suave de saída antes de remover do DOM
-                setTimeout(() => {
-                    elem.classList.add('saindo');
-                    setTimeout(() => {
-                        elem.remove();
-                    }, 500);
-                }, 1000);
+                // Função de remoção imediata foi apagada daqui!
             }
         }
 
-        // Envio de Texto
+        // Envia Texto
         function enviarMensagemTexto() {
             const input = document.getElementById('mensagemInput');
             const texto = input.value.trim();
@@ -688,27 +624,17 @@
             }
         }
 
-        document.getElementById('mensagemInput').addEventListener('keydown', (e) => {
+        // Gatilho do Enter para envio
+        document.getElementById('mensagemInput').addEventListener('keypress', function (e) {
             if (e.key === 'Enter') {
-                e.preventDefault();
                 enviarMensagemTexto();
             }
         });
 
-        // Gerenciamento de Fotos
+        // Gerencia Fotos
         function toggleMenuFoto() {
             const menu = document.getElementById('menuFoto');
             menu.classList.toggle('oculto');
-        }
-
-        function abrirCamera() {
-            document.getElementById('menuFoto').classList.add('oculto');
-            document.getElementById('cameraInput').click();
-        }
-
-        function abrirGaleria() {
-            document.getElementById('menuFoto').classList.add('oculto');
-            document.getElementById('galeriaInput').click();
         }
 
         function processarArquivoImagem(e) {
@@ -739,6 +665,8 @@
                     }));
 
                     renderizarMensagem(pacote, true);
+                } else {
+                    alert("Servidor desconectado. Não foi possível enviar a imagem.");
                 }
             };
             leitor.readAsDataURL(arquivo);
@@ -748,7 +676,7 @@
         document.getElementById('cameraInput').addEventListener('change', processarArquivoImagem);
         document.getElementById('galeriaInput').addEventListener('change', processarArquivoImagem);
 
-        // Gravação e Envio de Áudio
+        // Gerencia Áudio
         async function toggleGravacaoAudio() {
             const btnAudio = document.getElementById('btnAudio');
 
@@ -772,7 +700,12 @@
 
                     mediaRecorder.onstop = () => {
                         const blobAudio = new Blob(pedacosAudio, { type: mediaRecorder.mimeType || 'audio/webm' });
-                        
+
+                        if (blobAudio.size > 8 * 1024 * 1024) {
+                            alert("O áudio gravado é muito longo.");
+                            return;
+                        }
+
                         const leitor = new FileReader();
                         leitor.onload = function(evt) {
                             const base64Audio = evt.target.result;
@@ -791,10 +724,11 @@
                                 }));
 
                                 renderizarMensagem(pacote, true);
+                            } else {
+                                alert("Falha na conexão. Áudio não enviado.");
                             }
                         };
                         leitor.readAsDataURL(blobAudio);
-                        stream.getTracks().forEach(track => track.stop());
                     };
 
                     mediaRecorder.start();
@@ -807,6 +741,7 @@
             } else {
                 if (mediaRecorder && mediaRecorder.state !== "inactive") {
                     mediaRecorder.stop();
+                    mediaRecorder.stream.getTracks().forEach(track => track.stop());
                 }
                 gravandoAudio = false;
                 btnAudio.classList.remove('gravando');
