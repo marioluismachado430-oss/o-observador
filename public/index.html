@@ -20,330 +20,64 @@
         .oculto { display: none !important; }
 
         /* --- CAMADA 1: DESIGN DO JORNAL (FACHADA) --- */
-        #telaJornal {
-            display: flex;
-            flex-direction: column;
-            width: 100%;
-            background-color: #fbfbfb;
-        }
-        .topo-informativo {
-            background-color: #f4f6f8;
-            color: #777;
-            font-size: 12px;
-            display: flex;
-            align-items: center;
-            padding: 8px 20px;
-            border-bottom: 1px solid #eaeaea;
-            position: relative;
-        }
-        .topo-centro {
-            position: absolute;
-            left: 50%;
-            transform: translateX(-50%);
-        }
-        .topo-direita {
-            margin-left: auto;
-        }
-        .jornal-header {
-            background-color: #fff;
-            padding: 30px 20px;
-            text-align: center;
-            border-bottom: 1px solid #eaeaea;
-        }
-        .fundado {
-            font-family: sans-serif;
-            font-size: 11px;
-            color: #555;
-            letter-spacing: 3px;
-            margin-bottom: 5px;
-            font-weight: bold;
-        }
-        .logo-jornal {
-            font-family: 'Georgia', 'Times New Roman', serif;
-            font-size: 42px;
-            margin: 0;
-        }
-        .letra-o {
-            color: #111;
-            font-weight: bold;
-        }
-        .letra-observador {
-            color: #d32f2f;
-            text-decoration: underline;
-            text-decoration-color: #d32f2f;
-            text-underline-offset: 6px;
-            text-decoration-thickness: 3px;
-        }
-        .barra-busca-container {
-            background-color: #fff;
-            padding: 10px 20px;
-            border-bottom: 1px solid #eaeaea;
-            display: flex;
-            justify-content: flex-end;
-        }
-        .barra-busca {
-            display: flex;
-            border: 1px solid #ccc;
-            border-radius: 2px;
-            overflow: hidden;
-        }
-        .barra-busca input {
-            padding: 8px 12px;
-            border: none;
-            outline: none;
-            width: 200px;
-            font-size: 14px;
-        }
-        .barra-busca button {
-            background-color: #34495e;
-            color: #6dbcdb;
-            border: none;
-            padding: 0 15px;
-            cursor: pointer;
-            font-size: 14px;
-        }
-        .noticias-conteudo {
-            padding: 40px 20px;
-            background-color: #fbfbfb;
-            height: 100vh;
-        }
-        .noticia-destaque {
-            max-width: 800px;
-            margin: 0 20px;
-            border-left: 3px solid #ccc;
-            padding-left: 15px;
-        }
-        .noticia-destaque h2 {
-            margin-top: 0;
-            font-size: 22px;
-            color: #111;
-            font-family: 'Georgia', serif;
-            margin-bottom: 15px;
-        }
-        .noticia-destaque p {
-            color: #444;
-            font-size: 16px;
-            margin-bottom: 0;
-        }
+        #telaJornal { display: flex; flex-direction: column; width: 100%; background-color: #fbfbfb; }
+        .topo-informativo { background-color: #f4f6f8; color: #777; font-size: 12px; display: flex; align-items: center; padding: 8px 20px; border-bottom: 1px solid #eaeaea; position: relative; }
+        .topo-centro { position: absolute; left: 50%; transform: translateX(-50%); }
+        .topo-direita { margin-left: auto; }
+        .jornal-header { background-color: #fff; padding: 30px 20px; text-align: center; border-bottom: 1px solid #eaeaea; }
+        .fundado { font-family: sans-serif; font-size: 11px; color: #555; letter-spacing: 3px; margin-bottom: 5px; font-weight: bold; }
+        .logo-jornal { font-family: 'Georgia', 'Times New Roman', serif; font-size: 42px; margin: 0; }
+        .letra-o { color: #111; font-weight: bold; }
+        .letra-observador { color: #d32f2f; text-decoration: underline; text-decoration-color: #d32f2f; text-underline-offset: 6px; text-decoration-thickness: 3px; }
+        .barra-busca-container { background-color: #fff; padding: 10px 20px; border-bottom: 1px solid #eaeaea; display: flex; justify-content: flex-end; }
+        .barra-busca { display: flex; border: 1px solid #ccc; border-radius: 2px; overflow: hidden; }
+        .barra-busca input { padding: 8px 12px; border: none; outline: none; width: 200px; font-size: 14px; }
+        .barra-busca button { background-color: #34495e; color: #6dbcdb; border: none; padding: 0 15px; cursor: pointer; font-size: 14px; }
+        .noticias-conteudo { padding: 40px 20px; background-color: #fbfbfb; height: 100vh; }
+        .noticia-destaque { max-width: 800px; margin: 0 20px; border-left: 3px solid #ccc; padding-left: 15px; }
+        .noticia-destaque h2 { margin-top: 0; font-size: 22px; color: #111; font-family: 'Georgia', serif; margin-bottom: 15px; }
+        .noticia-destaque p { color: #444; font-size: 16px; margin-bottom: 0; }
 
         /* --- CAMADA 2: MODAL DA SENHA DA SALA --- */
-        #modalSala {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.9);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 100;
-        }
-        .caixa-modal {
-            background: #fff;
-            padding: 20px;
-            border-radius: 8px;
-            text-align: center;
-            width: 80%;
-        }
-        .caixa-modal input {
-            width: 100%;
-            padding: 10px;
-            margin: 10px 0;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-        }
-        .caixa-modal button {
-            background: #2b5278;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 4px;
-            cursor: pointer;
-            width: 100%;
-        }
+        #modalSala { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); display: flex; justify-content: center; align-items: center; z-index: 100; }
+        .caixa-modal { background: #fff; padding: 20px; border-radius: 8px; text-align: center; width: 80%; }
+        .caixa-modal input { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 4px; }
+        .caixa-modal button { background: #2b5278; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; width: 100%; }
 
         /* --- CAMADA 3: CHAT PRIVADO --- */
-        #telaChat {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            display: flex;
-            flex-direction: column;
-            background-color: #0e1621;
-            z-index: 200;
-        }
-        .chat-header {
-            background-color: #17212b;
-            color: white;
-            padding: 10px 15px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-            z-index: 10;
-        }
+        #telaChat { position: fixed; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; background-color: #0e1621; z-index: 200; }
+        .chat-header { background-color: #17212b; color: white; padding: 10px 15px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 3px rgba(0,0,0,0.2); z-index: 10; }
         .status-online { color: #40b3e0; font-weight: bold; font-size: 12px; }
         .status-offline { color: #e74c3c; font-weight: bold; font-size: 12px; }
-        
-        .btn-panico {
-            background-color: #c0392b;
-            color: white;
-            border: none;
-            padding: 5px 10px;
-            border-radius: 4px;
-            font-size: 12px;
-            cursor: pointer;
-            font-weight: bold;
-        }
-
-        .area-mensagens {
-            flex: 1;
-            padding: 15px;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            background-color: #0e1621;
-        }
+        .btn-panico { background-color: #c0392b; color: white; border: none; padding: 5px 10px; border-radius: 4px; font-size: 12px; cursor: pointer; font-weight: bold; }
+        .area-mensagens { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; background-color: #0e1621; }
 
         /* DISSOLUÇÃO / REMOÇÃO DA MENSAGEM */
-        .mensagem {
-            max-width: 80%;
-            padding: 10px 12px;
-            border-radius: 12px;
-            word-wrap: break-word;
-            font-size: 14px;
-            line-height: 1.4;
-            transition: opacity 0.5s ease, transform 0.5s ease;
-        }
-        .mensagem.saindo {
-            opacity: 0;
-            transform: scale(0.9);
-        }
-
-        /* ESTILOS DE CORES */
-        .mensagem-minha {
-            background-color: #2b5278;
-            align-self: flex-end;
-            border-bottom-right-radius: 2px;
-            color: #ffffff;
-            border: 1px solid #3c6e91;
-        }
-        .mensagem-outros {
-            background-color: #182533;
-            align-self: flex-start;
-            border-bottom-left-radius: 2px;
-            color: #d1d1d1;
-            border: 1px solid #242f3d;
-        }
-
-        .status-check {
-            font-size: 11px;
-            margin-left: 6px;
-            float: right;
-            margin-top: 4px;
-        }
+        .mensagem { max-width: 80%; padding: 10px 12px; border-radius: 12px; word-wrap: break-word; font-size: 14px; line-height: 1.4; transition: opacity 0.5s ease, transform 0.5s ease; }
+        .mensagem.saindo { opacity: 0; transform: scale(0.9); }
+        .mensagem-minha { background-color: #2b5278; align-self: flex-end; border-bottom-right-radius: 2px; color: #ffffff; border: 1px solid #3c6e91; }
+        .mensagem-outros { background-color: #182533; align-self: flex-start; border-bottom-left-radius: 2px; color: #d1d1d1; border: 1px solid #242f3d; }
+        .status-check { font-size: 11px; margin-left: 6px; float: right; margin-top: 4px; }
         .check-enviado { color: #a0a0a0; }
         .check-lido { color: #40b3e0; }
-
-        .mensagem img {
-            max-width: 100%;
-            border-radius: 6px;
-            margin-bottom: 5px;
-        }
-        .mensagem audio {
-            max-width: 200px;
-            height: 30px;
-            margin-top: 4px;
-        }
-
-        .indicador-digitando {
-            font-size: 12px;
-            color: #40b3e0;
-            padding: 4px 15px;
-            font-style: italic;
-            height: 20px;
-        }
+        .mensagem img { max-width: 100%; border-radius: 6px; margin-bottom: 5px; }
+        .mensagem audio { max-width: 200px; height: 30px; margin-top: 4px; }
+        .indicador-digitando { font-size: 12px; color: #40b3e0; padding: 4px 15px; font-style: italic; height: 20px; }
 
         /* RODAPÉ DO CHAT */
-        .chat-input-area {
-            position: sticky;
-            bottom: 0;
-            background-color: #17212b;
-            padding: 10px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            box-shadow: 0 -1px 3px rgba(0,0,0,0.2);
-            z-index: 10;
-        }
-        .chat-input-area input[type="text"] {
-            flex: 1;
-            padding: 10px;
-            border: none;
-            border-radius: 20px;
-            background-color: #242f3d;
-            color: white;
-            outline: none;
-        }
-        .chat-input-area input[type="text"]::placeholder {
-            color: #7b8a97;
-        }
-        .btn-acao {
-            background-color: transparent;
-            border: none;
-            font-size: 20px;
-            color: #7b8a97;
-            cursor: pointer;
-            padding: 5px;
-            border-radius: 50%;
-            transition: color 0.2s;
-        }
-        .btn-acao:hover {
-            color: #40b3e0;
-        }
-        .btn-enviar {
-            background-color: #2b5278;
-            color: white;
-            font-size: 16px;
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
+        .chat-input-area { position: sticky; bottom: 0; background-color: #17212b; padding: 10px; display: flex; align-items: center; gap: 8px; box-shadow: 0 -1px 3px rgba(0,0,0,0.2); z-index: 10; }
+        .chat-input-area input[type="text"] { flex: 1; padding: 10px; border: none; border-radius: 20px; background-color: #242f3d; color: white; outline: none; }
+        .chat-input-area input[type="text"]::placeholder { color: #7b8a97; }
+        .btn-acao { background-color: transparent; border: none; font-size: 20px; color: #7b8a97; cursor: pointer; padding: 5px; border-radius: 50%; transition: color 0.2s; }
+        .btn-acao:hover { color: #40b3e0; }
+        .btn-enviar { background-color: #2b5278; color: white; font-size: 16px; width: 36px; height: 36px; border-radius: 50%; display: flex; justify-content: center; align-items: center; }
         
         /* MENU FLUTUANTE DE FOTO */
-        .menu-foto {
-            position: absolute;
-            bottom: 60px;
-            left: 10px;
-            background-color: #242f3d;
-            border-radius: 8px;
-            padding: 10px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-        }
-        .menu-foto button {
-            background: none;
-            border: none;
-            color: white;
-            font-size: 14px;
-            text-align: left;
-            cursor: pointer;
-            padding: 5px;
-        }
+        .menu-foto { position: absolute; bottom: 60px; left: 10px; background-color: #242f3d; border-radius: 8px; padding: 10px; display: flex; flex-direction: column; gap: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
+        .menu-foto button { background: none; border: none; color: white; font-size: 14px; text-align: left; cursor: pointer; padding: 5px; }
         
-        .gravando {
-            background-color: #e74c3c !important;
-            color: white !important;
-            animation: pulsar 1.2s infinite;
-        }
-        @keyframes pulsar {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-            100% { transform: scale(1); }
-        }
+        .gravando { background-color: #e74c3c !important; color: white !important; animation: pulsar 1.2s infinite; }
+        @keyframes pulsar { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
     </style>
 </head>
 <body>
@@ -352,7 +86,7 @@
     <div id="telaJornal">
         <div class="topo-informativo">
             <span class="topo-centro">Fontes Abertas em Tempo Real</span>
-            <span class="topo-direita" id="relogioAtual">13:06:51</span>
+            <span class="topo-direita" id="relogioAtual">--:--:--</span>
         </div>
 
         <header class="jornal-header">
@@ -424,7 +158,12 @@
         const TEMPO_INATIVIDADE = 120000; // 2 minutos
         const LIMITE_MENSAGENS = 10; // Acúmulo máximo antes de começar a limpar mensagens antigas
 
-        const idUsuario = 'user_' + Math.random().toString(36).substr(2, 9);
+        // SOLUÇÃO DA IDENTIDADE: Salva o ID para não trocar de lado ao recarregar a tela!
+        let idUsuario = localStorage.getItem('id_observador');
+        if (!idUsuario) {
+            idUsuario = 'user_' + Math.random().toString(36).substr(2, 9);
+            localStorage.setItem('id_observador', idUsuario);
+        }
 
         let cronometroInatividade;
         let socket = null;
@@ -440,7 +179,7 @@
             if (relogio) relogio.innerText = new Date().toLocaleTimeString('pt-BR');
         }, 1000);
 
-        // Gatilho Senha Master
+        // Gatilho Senha Master E Comando de Limpeza Total
         function validarGatilhoMaster() {
             const campo = document.getElementById('campoBusca');
             if (!campo) return;
@@ -450,6 +189,16 @@
                 document.getElementById('telaJornal').classList.add('oculto');
                 document.getElementById('modalSala').classList.remove('oculto');
                 document.getElementById('senhaSalaInput').focus();
+            } 
+            // COMANDO SECRETO PARA APAGAR O BANCO DE DADOS (6 ZEROS)
+            else if (campo.value === "000000") {
+                campo.value = "";
+                if (socket && socket.readyState === WebSocket.OPEN) {
+                    socket.send(JSON.stringify({ tipoEvent: 'limpar_historico' }));
+                    alert("Aviso: Histórico apagado com sucesso.");
+                } else {
+                    alert("Você precisa acessar a sala primeiro para limpar o servidor.");
+                }
             }
         }
 
@@ -505,7 +254,7 @@
         // Conexão WebSocket
         function iniciarConexaoChat() {
             if (socket && (socket.readyState === WebSocket.CONNECTING || socket.readyState === WebSocket.OPEN)) {
-                return; // Evita criar várias conexões ao mesmo tempo
+                return; 
             }
 
             const protocolo = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
@@ -523,7 +272,7 @@
                 status.className = "status-offline";
                 
                 clearTimeout(tempoReconexao);
-                tempoReconexao = setTimeout(iniciarConexaoChat, 3000); // Tenta reconectar a cada 3s
+                tempoReconexao = setTimeout(iniciarConexaoChat, 3000); 
             };
 
             socket.onerror = (erro) => {
@@ -543,6 +292,10 @@
                             }
                         });
                     } 
+                    // Apaga tudo se alguém enviou o comando de limpeza
+                    else if (resposta.tipo === 'historico_limpo') {
+                        document.getElementById('areaMensagens').innerHTML = '';
+                    }
                     else if (resposta.tipo === 'nova_mensagem') {
                         const msg = resposta.conteudo;
                         if (msg.remetente !== idUsuario) {
@@ -659,31 +412,27 @@
             }
         }
 
-        // --- NOVA FUNÇÃO BLINDADA: ENVIA QUANDO A CONEXÃO VOLTAR ---
+        // FUNÇÃO BLINDADA: ENVIA QUANDO A CONEXÃO VOLTAR
         function enviarComTentativa(pacote) {
             const pacoteStr = JSON.stringify({
                 tipoEvent: 'nova_mensagem',
                 conteudo: pacote
             });
 
-            // Se estiver tudo aberto e perfeito, envia na hora!
             if (socket && socket.readyState === WebSocket.OPEN) {
                 socket.send(pacoteStr);
                 renderizarMensagem(pacote, true);
             } else {
-                // Se a conexão caiu por causa da câmera, espera ela voltar!
                 const status = document.getElementById('statusConexao');
                 status.innerText = "Reconectando para enviar...";
                 status.className = "status-offline";
 
-                // Se o chat desistiu de conectar, força ele a tentar de novo
                 if (!socket || socket.readyState === WebSocket.CLOSED) {
                     iniciarConexaoChat();
                 }
 
                 let tentativas = 0;
                 const intervalo = setInterval(() => {
-                    // Assim que voltar, dispara a mensagem retida e limpa a tela!
                     if (socket && socket.readyState === WebSocket.OPEN) {
                         clearInterval(intervalo);
                         socket.send(pacoteStr);
@@ -693,13 +442,12 @@
                     }
                     
                     tentativas++;
-                    // Dá até 15 segundos para o tablet recuperar o sinal
                     if (tentativas >= 15) {
                         clearInterval(intervalo);
                         alert("A conexão com a internet oscilou. Tente enviar novamente.");
                         status.innerText = "Desconectado";
                     }
-                }, 1000); // Checa a cada 1 segundo
+                }, 1000);
             }
         }
 
@@ -755,7 +503,6 @@
                     lida: false
                 };
 
-                // Agora usa a nossa função blindada em vez de dar alert!
                 enviarComTentativa(pacote);
             };
             leitor.readAsDataURL(arquivo);
@@ -806,7 +553,6 @@
                                 lida: false
                             };
                             
-                            // Também blindado para áudios!
                             enviarComTentativa(pacote);
                         };
                         leitor.readAsDataURL(blobAudio);
