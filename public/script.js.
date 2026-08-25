@@ -1,7 +1,7 @@
-// server.js - Servidor de Comunicação em Tempo Real com Suporte a Mídia e Histórico
 const express = require('express');
 const http = require('http');
 const WebSocket = require('ws');
+const path = require('path');
 
 const app = express();
 const servidor = http.createServer(app);
@@ -12,50 +12,85 @@ const wss = new WebSocket.Server({
     maxPayload: 10 * 1024 * 1024 // 10 Megabytes
 });
 
-// Armazena as últimas mensagens enviadas na memória do servidor
-let historicoMensagens = [];
+// Serve os arquivos da pasta 'public' (onde está o seu index.html)
+app.use(express.static(path.join(__dirname, 'public')));
 
-// Disponibiliza os arquivos estáticos da pasta 'public'
-app.use(express.static('public'));
+// Histórico de mensagens mantido em memória
+let historicoMensagens = [];
 
 wss.on('connection', (ws) => {
     ws.isAlive = true;
-
-    // Responde ao sinal de batimento cardíaco (ping/pong)
+    
     ws.on('pong', () => {
         ws.isAlive = true;
     });
 
-    // Envia o histórico completo para novos dispositivos conectados
-    try {
-        historicoMensagens.forEach((msg) => {
-            if (ws.readyState === WebSocket.OPEN) {
-                ws.send(JSON.stringify(msg));
-            }
-        });
-    } catch (erro) {
-        console.error("Erro ao enviar histórico inicial:", erro);
-    }
+    // Envia o histórico assim que o cliente conecta
+    ws.send(JSON.stringify({
+        tipo: 'historico',
+        conteudo: historicoMensagens
+    }));
 
-    // Processamento de novas mensagens (Texto, Imagem, Áudio)
-    ws.on('message', (dadosBrutos) => {
+    // Processamento de novas mensagens e comandos
+    ws.on('message', (mensagem) => {
         try {
-            const mensagemObj = JSON.parse(dadosBrutos);
+            const dados = JSON.parse(mensagem);
 
-            // Adiciona a nova mensagem ao histórico
-            historicoMensagens.push(mensagemObj);
-
-            // Mantém apenas as últimas 100 mensagens para otimizar o uso da memória
-            if (historicoMensagens.length > 100) {
-                historicoMensagens.shift();
-            }
-
-            // Retransmite a mensagem para todos os outros clientes conectados
-            wss.clients.forEach((cliente) => {
-                if (cliente !== ws && cliente.readyState === WebSocket.OPEN) {
-                    cliente.send(JSON.stringify(mensagemObj));
+            // 1. Recebe e retransmite uma mensagem normal (texto, foto, áudio)
+            if (dados.tipoEvent === 'nova_mensagem') {
+                historicoMensagens.push(dados.conteudo);
+                
+                // Mantém apenas as últimas 100 mensagens no servidor para não pesar
+                if (historicoMensagens.length > 100) {
+                    historicoMensagens.shift();
                 }
-            });
+
+                wss.clients.forEach((cliente) => {
+                    if (cliente.readyState === WebSocket.OPEN) {
+                        cliente.send(JSON.stringify({
+                            tipo: 'nova_mensagem',
+                            conteudo: dados.conteudo
+                        }));
+                    }
+                });
+            } 
+            // 2. Confirma a leitura (✓✓)
+            else if (dados.tipoEvent === 'confirmar_leitura') {
+                const msgAlvo = historicoMensagens.find(m => m.id === dados.idMensagem);
+                if (msgAlvo) msgAlvo.lida = true;
+
+                wss.clients.forEach((cliente) => {
+                    if (cliente.readyState === WebSocket.OPEN) {
+                        cliente.send(JSON.stringify({
+                            tipo: 'mensagem_lida_confirmada',
+                            idMensagem: dados.idMensagem
+                        }));
+                    }
+                });
+            }
+            // 3. Aviso de "Digitando..."
+            else if (dados.tipoEvent === 'digitando') {
+                wss.clients.forEach((cliente) => {
+                    if (cliente !== ws && cliente.readyState === WebSocket.OPEN) {
+                        cliente.send(JSON.stringify({
+                            tipo: 'usuario_digitando',
+                            remetente: dados.remetente,
+                            estado: dados.estado
+                        }));
+                    }
+                });
+            }
+            // 4. O COMANDO SECRETO PARA APAGAR O SERVIDOR (000000)
+            else if (dados.tipoEvent === 'limpar_historico') {
+                historicoMensagens = []; // Zera a memória do servidor
+                wss.clients.forEach((cliente) => {
+                    if (cliente.readyState === WebSocket.OPEN) {
+                        cliente.send(JSON.stringify({
+                            tipo: 'historico_limpo' // Manda todos os tablets/PCs limparem a tela
+                        }));
+                    }
+                });
+            }
         } catch (erro) {
             console.error("Erro ao processar pacote recebido:", erro);
         }
@@ -63,10 +98,6 @@ wss.on('connection', (ws) => {
 
     ws.on('error', (erro) => {
         console.error("Erro na conexão WebSocket:", erro);
-    });
-
-    ws.on('close', () => {
-        console.log("Dispositivo desconectado.");
     });
 });
 
@@ -83,8 +114,8 @@ wss.on('close', () => {
     clearInterval(intervaloMonitor);
 });
 
-// Definição da porta para hospedagem no Render
+// Inicialização blindada com '0.0.0.0' para hospedagem no Render
 const PORTA = process.env.PORT || 3000;
-servidor.listen(PORTA, () => {
-    console.log(`Servidor rodando na porta ${PORTA}`);
+servidor.listen(PORTA, '0.0.0.0', () => {
+    console.log(`[O OBSERVADOR] Servidor rodando na porta ${PORTA}`);
 });
