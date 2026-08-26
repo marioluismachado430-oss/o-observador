@@ -1,124 +1,136 @@
-/**
- * server.js - Servidor de Comunicação Real-Time para "O Observador"
- * Responsável pelo gerenciamento de WebSockets, histórico de mensagens,
- * confirmações de leitura e sincronização de estado entre dispositivos.
- */
-
 const express = require('express');
 const http = require('http');
 const WebSocket = require('ws');
+const path = require('path');
 
 const app = express();
 const servidor = http.createServer(app);
 
-// Configuração do servidor WebSocket com suporte a mídias de até 10MB
+// Suporta mídia pesada
 const wss = new WebSocket.Server({ 
     server: servidor,
     maxPayload: 10 * 1024 * 1024 
 });
 
-// Estrutura de histórico de mensagens mantida na memória do servidor
-let historicoMensagens = [];
+app.use(express.static(path.join(__dirname, 'public')));
 
-// Serve os arquivos estáticos da pasta 'public' (HTML, CSS, JS)
-app.use(express.static('public'));
+let historicoMensagens = [];
 
 wss.on('connection', (ws) => {
     ws.isAlive = true;
-
-    // Resposta ao sinal de batimento cardíaco (ping/pong) para manter conexão ativa
     ws.on('pong', () => { ws.isAlive = true; });
 
-    // Envia o histórico existente assim que o dispositivo se conecta
-    try {
-        ws.send(JSON.stringify({
-            tipo: 'historico',
-            conteudo: historicoMensagens
-        }));
-    } catch (erro) {
-        console.error("Erro ao enviar histórico inicial:", erro);
-    }
+    ws.send(JSON.stringify({
+        tipo: 'historico',
+        conteudo: historicoMensagens
+    }));
 
-    // Processamento de mensagens recebidas dos clientes
-    ws.on('message', (dadosBrutos) => {
+    ws.on('message', (mensagem) => {
         try {
-            const pacote = JSON.parse(dadosBrutos);
+            const dados = JSON.parse(mensagem);
 
-            // 1. Tratamento de Novas Mensagens (Texto, Imagem, Áudio)
-            if (pacote.tipoEvent === 'nova_mensagem') {
-                historicoMensagens.push(pacote.conteudo);
-                if (historicoMensagens.length > 100) historicoMensagens.shift();
+            if (dados.tipoEvent === 'nova_mensagem') {
+                // Garante que a mensagem tenha uma etiqueta de tempo caso não venha
+                if (!dados.conteudo.timestamp) {
+                    dados.conteudo.timestamp = Date.now();
+                }
+                
+                historicoMensagens.push(dados.conteudo);
 
-                // Retransmite para todos os clientes conectados
                 wss.clients.forEach((cliente) => {
                     if (cliente.readyState === WebSocket.OPEN) {
                         cliente.send(JSON.stringify({
                             tipo: 'nova_mensagem',
-                            conteudo: pacote.conteudo
+                            conteudo: dados.conteudo
                         }));
                     }
                 });
-            }
+            } 
+            else if (dados.tipoEvent === 'confirmar_leitura') {
+                const msgAlvo = historicoMensagens.find(m => m.id === dados.idMensagem);
+                if (msgAlvo) msgAlvo.lida = true;
 
-            // 2. Tratamento de Confirmação de Leitura e Remoção
-            else if (pacote.tipoEvent === 'confirmar_leitura') {
-                const idMsg = pacote.idMensagem;
-                
-                // Atualiza o estado no histórico
-                const msgIndex = historicoMensagens.findIndex(m => m.id === idMsg);
-                if (msgIndex !== -1) {
-                    historicoMensagens[msgIndex].lida = true;
-                }
-
-                // Notifica todos os clientes para atualizar status e remover a mensagem
                 wss.clients.forEach((cliente) => {
                     if (cliente.readyState === WebSocket.OPEN) {
                         cliente.send(JSON.stringify({
                             tipo: 'mensagem_lida_confirmada',
-                            idMensagem: idMsg
+                            idMensagem: dados.idMensagem
                         }));
                     }
                 });
             }
-
-            // 3. Tratamento de Indicador de "Digitando..."
-            else if (pacote.tipoEvent === 'digitando') {
+            else if (dados.tipoEvent === 'digitando') {
                 wss.clients.forEach((cliente) => {
                     if (cliente !== ws && cliente.readyState === WebSocket.OPEN) {
                         cliente.send(JSON.stringify({
                             tipo: 'usuario_digitando',
-                            remetente: pacote.remetente,
-                            estado: pacote.estado
+                            remetente: dados.remetente,
+                            estado: dados.estado
                         }));
                     }
                 });
             }
-
+            else if (dados.tipoEvent === 'limpar_historico') {
+                historicoMensagens = []; 
+                wss.clients.forEach((cliente) => {
+                    if (cliente.readyState === WebSocket.OPEN) {
+                        cliente.send(JSON.stringify({
+                            tipo: 'historico_limpo' 
+                        }));
+                    }
+                });
+            }
         } catch (erro) {
-            console.error("Erro ao processar pacote no servidor:", erro);
+            console.error("Erro ao processar pacote recebido:", erro);
         }
     });
 
-    ws.on('close', () => {
-        console.log("Dispositivo desconectado.");
-    });
+    ws.on('error', (erro) => { console.error("Erro na conexão WebSocket:", erro); });
 });
 
-// Monitoramento de conexões ativas a cada 20 segundos
-const intervalo = setInterval(() => {
+// MONITOR DE CONEXÃO
+const intervaloMonitor = setInterval(() => {
     wss.clients.forEach((ws) => {
         if (ws.isAlive === false) return ws.terminate();
         ws.isAlive = false;
         ws.ping();
     });
-}, 20000);
+}, 25000);
+
+// LIXEIRO INTELIGENTE DE 24 HORAS (Verifica o banco a cada 1 minuto)
+const UM_DIA = 24 * 60 * 60 * 1000;
+const intervaloLimpeza = setInterval(() => {
+    const agora = Date.now();
+    let idsRemovidos = [];
+    
+    // Filtra deixando só as que têm menos de 24 horas
+    historicoMensagens = historicoMensagens.filter(m => {
+        if (agora - m.timestamp > UM_DIA) {
+            idsRemovidos.push(m.id);
+            return false; // Joga fora
+        }
+        return true; // Mantém
+    });
+
+    // Se ele achou coisas velhas pra jogar fora, avisa a tela de todo mundo pra apagar
+    if (idsRemovidos.length > 0) {
+        wss.clients.forEach(c => {
+            if (c.readyState === WebSocket.OPEN) {
+                c.send(JSON.stringify({
+                    tipo: 'apagar_antigas',
+                    ids: idsRemovidos
+                }));
+            }
+        });
+    }
+}, 60000);
 
 wss.on('close', () => {
-    clearInterval(intervalo);
+    clearInterval(intervaloMonitor);
+    clearInterval(intervaloLimpeza);
 });
 
-// Inicialização na porta configurada pelo ambiente ou porta padrão 3000
 const PORTA = process.env.PORT || 3000;
 servidor.listen(PORTA, '0.0.0.0', () => {
-    console.log(`Servidor O Observador rodando na porta ${PORTA}`);
+    console.log(`[O OBSERVADOR] Servidor rodando na porta ${PORTA}`);
 });
