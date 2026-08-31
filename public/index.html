@@ -285,7 +285,6 @@
                         document.getElementById('areaMensagens').innerHTML = '';
                     }
                     else if (resposta.tipo === 'apagar_antigas') {
-                        // O servidor mandou apagar mensagens com mais de 24h
                         resposta.ids.forEach(id => {
                             const elem = document.getElementById(`msg-${id}`);
                             if (elem) {
@@ -299,7 +298,6 @@
                         if (msg.remetente !== idUsuario) {
                             renderizarMensagem(msg, false);
                             
-                            // CONFIRMAÇÃO INTELIGENTE DE LEITURA (Só marca se a tela estiver acesa)
                             if (document.visibilityState === 'visible') {
                                 socket.send(JSON.stringify({ tipoEvent: 'confirmar_leitura', idMensagem: msg.id }));
                             } else {
@@ -318,7 +316,6 @@
             };
         }
 
-        // Envia as confirmações pendentes quando a pessoa volta a olhar pra tela
         document.addEventListener("visibilitychange", () => {
             if (document.visibilityState === 'visible' && mensagensLidasEmEspera.length > 0) {
                 if (socket && socket.readyState === WebSocket.OPEN) {
@@ -352,7 +349,6 @@
             else if (pacote.tipoMidia === 'imagem') conteudoHTML = `<img src="${pacote.conteudo}" alt="Imagem">`;
             else if (pacote.tipoMidia === 'audio') conteudoHTML = `<audio src="${pacote.conteudo}" controls></audio>`;
 
-            // Se for antiga (histórico) e já foi lida, desenha o check azul, senão cinza
             const iconeBase = pacote.lida ? '✓✓' : '✓';
             const classeBase = pacote.lida ? 'status-check check-lido' : 'status-check check-enviado';
             const statusIcone = eMinha ? `<span class="${classeBase}" id="check-${pacote.id}">${iconeBase}</span>` : '';
@@ -396,15 +392,14 @@
             }
         }
 
-        // Funções dos Menus
         function toggleMenuFoto() {
             document.getElementById('menuFoto').classList.toggle('oculto');
-            document.getElementById('menuEmoji').classList.add('oculto'); // Fecha o outro
+            document.getElementById('menuEmoji').classList.add('oculto'); 
         }
 
         function toggleMenuEmoji() {
             document.getElementById('menuEmoji').classList.toggle('oculto');
-            document.getElementById('menuFoto').classList.add('oculto'); // Fecha o outro
+            document.getElementById('menuFoto').classList.add('oculto'); 
         }
 
         function addEmoji(emoji) {
@@ -424,7 +419,7 @@
                 tipoMidia: 'texto', 
                 conteudo: texto, 
                 lida: false,
-                timestamp: Date.now() // Etiqueta de tempo para a regra de 24h
+                timestamp: Date.now() 
             };
             enviarComTentativa(pacote);
             input.value = "";
@@ -447,7 +442,7 @@
                     tipoMidia: 'imagem', 
                     conteudo: base64, 
                     lida: false,
-                    timestamp: Date.now() // Etiqueta de tempo para a regra de 24h
+                    timestamp: Date.now() 
                 };
                 enviarComTentativa(pacote);
             };
@@ -459,22 +454,37 @@
         document.getElementById('cameraInput').addEventListener('change', processarArquivoImagem);
         document.getElementById('galeriaInput').addEventListener('change', processarArquivoImagem);
 
+        // FUNÇÃO DE ÁUDIO CORRIGIDA
         async function toggleGravacaoAudio() {
             const btnAudio = document.getElementById('btnAudio');
+            
             if (!gravandoAudio) {
                 try {
                     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                    let opcoesFormato = {};
-                    if (MediaRecorder.isTypeSupported('audio/webm')) opcoesFormato = { mimeType: 'audio/webm' };
-                    else if (MediaRecorder.isTypeSupported('audio/mp4')) opcoesFormato = { mimeType: 'audio/mp4' };
-
-                    mediaRecorder = new MediaRecorder(stream, opcoesFormato);
+                    
+                    // Deixa o navegador decidir o melhor formato nativo (evita falhas)
+                    mediaRecorder = new MediaRecorder(stream);
                     pedacosAudio = [];
 
-                    mediaRecorder.ondataavailable = (e) => { if (e.data.size > 0) pedacosAudio.push(e.data); };
+                    mediaRecorder.ondataavailable = (e) => { 
+                        if (e.data && e.data.size > 0) pedacosAudio.push(e.data); 
+                    };
+                    
                     mediaRecorder.onstop = () => {
+                        // O microfone só desliga AQUI, garantindo que o arquivo não corrompa
+                        stream.getTracks().forEach(track => track.stop());
+
                         const blobAudio = new Blob(pedacosAudio, { type: mediaRecorder.mimeType || 'audio/webm' });
-                        if (blobAudio.size > 8 * 1024 * 1024) { alert("O áudio gravado é muito longo."); return; }
+                        
+                        if (blobAudio.size === 0) {
+                            alert("O áudio gravado está vazio. Verifique o microfone."); 
+                            return; 
+                        }
+                        if (blobAudio.size > 8 * 1024 * 1024) {
+                            alert("O áudio gravado é muito longo."); 
+                            return; 
+                        }
+                        
                         const leitor = new FileReader();
                         leitor.onload = function(evt) {
                             const base64Audio = evt.target.result;
@@ -484,21 +494,24 @@
                                 tipoMidia: 'audio', 
                                 conteudo: base64Audio, 
                                 lida: false,
-                                timestamp: Date.now() // Etiqueta de tempo para a regra de 24h
+                                timestamp: Date.now() 
                             };
                             enviarComTentativa(pacote);
                         };
                         leitor.readAsDataURL(blobAudio);
                     };
-                    mediaRecorder.start();
+                    
+                    // Inicia a gravação capturando fatias de 500ms
+                    mediaRecorder.start(500);
                     gravandoAudio = true;
                     btnAudio.classList.add('gravando');
                     btnAudio.innerText = "⏹️";
-                } catch (err) { alert("Permissão para microfone negada ou indisponível."); }
+                } catch (err) { 
+                    alert("Permissão para microfone negada ou indisponível."); 
+                }
             } else {
                 if (mediaRecorder && mediaRecorder.state !== "inactive") {
                     mediaRecorder.stop();
-                    mediaRecorder.stream.getTracks().forEach(track => track.stop());
                 }
                 gravandoAudio = false;
                 btnAudio.classList.remove('gravando');
