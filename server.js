@@ -6,7 +6,7 @@ const path = require('path');
 const app = express();
 const servidor = http.createServer(app);
 
-// Suporta mídia pesada
+// Suporta mídia pesada (10MB)
 const wss = new WebSocket.Server({ 
     server: servidor,
     maxPayload: 10 * 1024 * 1024 
@@ -30,7 +30,6 @@ wss.on('connection', (ws) => {
             const dados = JSON.parse(mensagem);
 
             if (dados.tipoEvent === 'nova_mensagem') {
-                // Garante que a mensagem tenha uma etiqueta de tempo caso não venha
                 if (!dados.conteudo.timestamp) {
                     dados.conteudo.timestamp = Date.now();
                 }
@@ -48,7 +47,7 @@ wss.on('connection', (ws) => {
             } 
             else if (dados.tipoEvent === 'confirmar_leitura') {
                 const msgAlvo = historicoMensagens.find(m => m.id === dados.idMensagem);
-                if (msgAlvo) msgAlvo.lida = true;
+                if (msgAlvo) msgAlvo.lida = true; // Marca a mensagem como lida na memória do servidor
 
                 wss.clients.forEach((cliente) => {
                     if (cliente.readyState === WebSocket.OPEN) {
@@ -97,22 +96,23 @@ const intervaloMonitor = setInterval(() => {
     });
 }, 25000);
 
-// LIXEIRO INTELIGENTE DE 24 HORAS (Verifica o banco a cada 1 minuto)
+// LIXEIRO INTELIGENTE COM TRAVA DE LEITURA (Verifica o banco a cada 1 minuto)
 const UM_DIA = 24 * 60 * 60 * 1000;
 const intervaloLimpeza = setInterval(() => {
     const agora = Date.now();
     let idsRemovidos = [];
     
-    // Filtra deixando só as que têm menos de 24 horas
+    // Filtra o histórico
     historicoMensagens = historicoMensagens.filter(m => {
-        if (agora - m.timestamp > UM_DIA) {
+        // REGRA DE OURO: Só apaga se tiver mais de 24 horas E (&&) a mensagem foi lida
+        if (agora - m.timestamp > UM_DIA && m.lida === true) {
             idsRemovidos.push(m.id);
-            return false; // Joga fora
+            return false; // Joga fora da memória
         }
-        return true; // Mantém
+        return true; // Mantém a mensagem (mesmo velha, se não foi lida, ela fica)
     });
 
-    // Se ele achou coisas velhas pra jogar fora, avisa a tela de todo mundo pra apagar
+    // Avisa os navegadores conectados para limparem a tela
     if (idsRemovidos.length > 0) {
         wss.clients.forEach(c => {
             if (c.readyState === WebSocket.OPEN) {
