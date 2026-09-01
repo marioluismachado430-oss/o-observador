@@ -36,7 +36,7 @@
     <div id="modalSala" class="oculto">
         <div class="caixa-modal">
             <h3>Autenticação de Sessão</h3>
-            <input type="password" id="senhaSalaInput" placeholder="Digite sua credencial (ex: mario)">
+            <input type="password" id="senhaSalaInput" placeholder="Digite sua credencial (ex: mario)" onkeypress="if(event.key === 'Enter') validarSenhaSala()">
             <button onclick="validarSenhaSala()">Acessar</button>
         </div>
     </div>
