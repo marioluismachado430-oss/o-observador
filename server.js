@@ -6,7 +6,6 @@ const path = require('path');
 const app = express();
 const servidor = http.createServer(app);
 
-// Suporta mídia pesada (10MB)
 const wss = new WebSocket.Server({ 
     server: servidor,
     maxPayload: 10 * 1024 * 1024 
@@ -14,40 +13,71 @@ const wss = new WebSocket.Server({
 
 app.use(express.static(path.join(__dirname, 'public')));
 
+// Base de usuários autorizados com senhas específicas
+const USUARIOS_AUTORIZADOS = {
+    "senha_mario": { id: "user_mario", nome: "Mario Luis" },
+    "senha_fardim": { id: "user_fardim", nome: "Fardim" },
+    "senha_matheus": { id: "user_matheus", nome: "Matheus Fritz" }
+};
+
 let historicoMensagens = [];
 
 wss.on('connection', (ws) => {
     ws.isAlive = true;
-    ws.on('pong', () => { ws.isAlive = true; });
+    ws.usuarioAtual = null;
 
-    ws.send(JSON.stringify({
-        tipo: 'historico',
-        conteudo: historicoMensagens
-    }));
+    ws.on('pong', () => { ws.isAlive = true; });
 
     ws.on('message', (mensagem) => {
         try {
             const dados = JSON.parse(mensagem);
 
-            if (dados.tipoEvent === 'nova_mensagem') {
-                if (!dados.conteudo.timestamp) {
-                    dados.conteudo.timestamp = Date.now();
+            // TENTATIVA DE LOGIN COM SENHA INDIVIDUAL
+            if (dados.tipoEvent === 'login') {
+                const credencial = dados.senha;
+                if (USUARIOS_AUTORIZADOS[credencial]) {
+                    ws.usuarioAtual = USUARIOS_AUTORIZADOS[credencial];
+                    
+                    // Responde com sucesso, enviando o ID, o Nome e o histórico
+                    ws.send(JSON.stringify({
+                        tipo: 'login_sucesso',
+                        id: ws.usuarioAtual.id,
+                        nome: ws.usuarioAtual.nome,
+                        conteudo: historicoMensagens
+                    }));
+                } else {
+                    ws.send(JSON.stringify({ tipo: 'login_erro' }));
                 }
+            }
+            // NOVA MENSAGEM
+            else if (dados.tipoEvent === 'nova_mensagem') {
+                if (!ws.usuarioAtual) return; // Segurança: precisa estar logado
+
+                const novaMsg = {
+                    id: 'msg_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
+                    remetente: ws.usuarioAtual.id,
+                    nomeRemetente: ws.usuarioAtual.nome,
+                    tipoMidia: dados.conteudo.tipoMidia,
+                    conteudo: dados.conteudo.conteudo,
+                    lida: false,
+                    timestamp: Date.now()
+                };
                 
-                historicoMensagens.push(dados.conteudo);
+                historicoMensagens.push(novaMsg);
 
                 wss.clients.forEach((cliente) => {
                     if (cliente.readyState === WebSocket.OPEN) {
                         cliente.send(JSON.stringify({
                             tipo: 'nova_mensagem',
-                            conteudo: dados.conteudo
+                            conteudo: novaMsg
                         }));
                     }
                 });
             } 
+            // CONFIRMAR LEITURA
             else if (dados.tipoEvent === 'confirmar_leitura') {
                 const msgAlvo = historicoMensagens.find(m => m.id === dados.idMensagem);
-                if (msgAlvo) msgAlvo.lida = true; // Marca a mensagem como lida na memória do servidor
+                if (msgAlvo) msgAlvo.lida = true;
 
                 wss.clients.forEach((cliente) => {
                     if (cliente.readyState === WebSocket.OPEN) {
@@ -58,36 +88,37 @@ wss.on('connection', (ws) => {
                     }
                 });
             }
+            // DIGITANDO
             else if (dados.tipoEvent === 'digitando') {
+                if (!ws.usuarioAtual) return;
                 wss.clients.forEach((cliente) => {
                     if (cliente !== ws && cliente.readyState === WebSocket.OPEN) {
                         cliente.send(JSON.stringify({
                             tipo: 'usuario_digitando',
-                            remetente: dados.remetente,
+                            remetente: ws.usuarioAtual.nome,
                             estado: dados.estado
                         }));
                     }
                 });
             }
+            // LIMPAR HISTÓRICO (Comando 000000)
             else if (dados.tipoEvent === 'limpar_historico') {
                 historicoMensagens = []; 
                 wss.clients.forEach((cliente) => {
                     if (cliente.readyState === WebSocket.OPEN) {
-                        cliente.send(JSON.stringify({
-                            tipo: 'historico_limpo' 
-                        }));
+                        cliente.send(JSON.stringify({ tipo: 'historico_limpo' }));
                     }
                 });
             }
         } catch (erro) {
-            console.error("Erro ao processar pacote recebido:", erro);
+            console.error("Erro ao processar pacote:", erro);
         }
     });
 
-    ws.on('error', (erro) => { console.error("Erro na conexão WebSocket:", erro); });
+    ws.on('error', (erro) => { console.error("Erro no WebSocket:", erro); });
 });
 
-// MONITOR DE CONEXÃO
+// Monitor de conexão
 const intervaloMonitor = setInterval(() => {
     wss.clients.forEach((ws) => {
         if (ws.isAlive === false) return ws.terminate();
@@ -96,23 +127,20 @@ const intervaloMonitor = setInterval(() => {
     });
 }, 25000);
 
-// LIXEIRO INTELIGENTE COM TRAVA DE LEITURA (Verifica o banco a cada 1 minuto)
+// Lixeiro inteligente de 24 horas (só apaga se lida)
 const UM_DIA = 24 * 60 * 60 * 1000;
 const intervaloLimpeza = setInterval(() => {
     const agora = Date.now();
     let idsRemovidos = [];
     
-    // Filtra o histórico
     historicoMensagens = historicoMensagens.filter(m => {
-        // REGRA DE OURO: Só apaga se tiver mais de 24 horas E (&&) a mensagem foi lida
         if (agora - m.timestamp > UM_DIA && m.lida === true) {
             idsRemovidos.push(m.id);
-            return false; // Joga fora da memória
+            return false;
         }
-        return true; // Mantém a mensagem (mesmo velha, se não foi lida, ela fica)
+        return true;
     });
 
-    // Avisa os navegadores conectados para limparem a tela
     if (idsRemovidos.length > 0) {
         wss.clients.forEach(c => {
             if (c.readyState === WebSocket.OPEN) {
