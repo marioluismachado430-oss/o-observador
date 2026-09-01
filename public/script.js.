@@ -1,6 +1,4 @@
-
- 
-    const SENHA_MASTER = "106230";
+const SENHA_MASTER = "106230";
 const TEMPO_INATIVIDADE = 120000; 
 
 let idUsuario = localStorage.getItem('id_observador');
@@ -39,6 +37,7 @@ function validarGatilhoMaster() {
     }
 }
 
+// Envia a credencial informada direto para o servidor validar
 function validarSenhaSala() {
     const inputSala = document.getElementById('senhaSalaInput');
     if (!inputSala) return;
