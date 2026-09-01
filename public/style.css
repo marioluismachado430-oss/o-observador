@@ -1,90 +1,162 @@
-/* public/style.css */
-* { box-sizing: border-box; }
+const express = require('express');
+const http = require('http');
+const WebSocket = require('ws');
+const path = require('path');
 
-body {
-    margin: 0;
-    padding: 0;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: #fbfbfb;
-    color: #222;
-    width: 100%;
-    height: 100%;
-    overflow-x: hidden;
-}
+const app = express();
+const servidor = http.createServer(app);
 
-.oculto { display: none !important; }
+const wss = new WebSocket.Server({ 
+    server: servidor,
+    maxPayload: 10 * 1024 * 1024 
+});
 
-/* --- CAMADA 1: DESIGN DO JORNAL --- */
-#telaJornal { display: flex; flex-direction: column; width: 100%; background-color: #fbfbfb; min-height: 100vh; }
-.topo-informativo { background-color: #f4f6f8; color: #777; font-size: 12px; display: flex; align-items: center; padding: 8px 20px; border-bottom: 1px solid #eaeaea; position: relative; }
-.topo-centro { position: absolute; left: 50%; transform: translateX(-50%); }
-.topo-direita { margin-left: auto; }
+app.use(express.static(path.join(__dirname, 'public')));
 
-.jornal-header { background-color: #fff; padding: 30px 20px; text-align: center; border-bottom: 1px solid #eaeaea; }
-.fundado { font-family: sans-serif; font-size: 11px; color: #555; letter-spacing: 3px; margin-bottom: 5px; font-weight: bold; }
-.logo-jornal { font-family: 'Georgia', 'Times New Roman', serif; font-size: 42px; margin: 0; }
-.letra-o { color: #111; font-weight: bold; }
-.letra-observador { color: #d32f2f; text-decoration: underline; text-decoration-color: #d32f2f; text-underline-offset: 6px; text-decoration-thickness: 3px; }
+// Credenciais de acesso individuais
+const USUARIOS_AUTORIZADOS = {
+    "mario": { id: "user_mario", nome: "Mario Luis" },
+    "gal": { id: "user_gal", nome: "Gal" },
+    "amigos": { id: "user_amigos", nome: "Amigos" }
+};
 
-.barra-busca-container { background-color: #fff; padding: 10px 20px; border-bottom: 1px solid #eaeaea; display: flex; justify-content: flex-end; }
-.barra-busca { display: flex; border: 1px solid #ccc; border-radius: 2px; overflow: hidden; }
-.barra-busca input { padding: 8px 12px; border: none; outline: none; width: 200px; font-size: 14px; background-color: #fff; }
-.barra-busca button { background-color: #34495e; color: #6dbcdb; border: none; padding: 0 15px; cursor: pointer; font-size: 14px; }
+let historicoMensagens = [];
 
-.noticias-conteudo { padding: 40px 20px; background-color: #fbfbfb; flex: 1; }
-.noticia-destaque { max-width: 800px; margin: 0 auto; border-left: 3px solid #ccc; padding-left: 15px; }
-.noticia-destaque h2 { margin-top: 0; font-size: 22px; color: #111; font-family: 'Georgia', serif; margin-bottom: 15px; }
-.noticia-destaque p { color: #444; font-size: 16px; margin-bottom: 0; }
+wss.on('connection', (ws) => {
+    ws.isAlive = true;
+    ws.usuarioAtual = null;
 
-/* --- CAMADA 2: MODAL DE AUTENTICAÇÃO --- */
-#modalSala { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); display: flex; justify-content: center; align-items: center; z-index: 100; }
-.caixa-modal { background: #fff; padding: 25px; border-radius: 8px; text-align: center; width: 90%; max-width: 350px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
-.caixa-modal h3 { margin-top: 0; color: #111; }
-.caixa-modal input { width: 100%; padding: 12px; margin: 10px 0 15px 0; border: 1px solid #ccc; border-radius: 4px; font-size: 15px; outline: none; }
-.caixa-modal button { background: #2b5278; color: white; border: none; padding: 12px 20px; border-radius: 4px; cursor: pointer; width: 100%; font-size: 15px; font-weight: bold; }
-.caixa-modal button:hover { background: #1d3853; }
+    ws.on('pong', () => { ws.isAlive = true; });
 
-/* --- CAMADA 3: CHAT SEGURO --- */
-#telaChat { position: fixed; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; background-color: #0e1621; z-index: 200; }
-.chat-header { background-color: #17212b; color: white; padding: 12px 15px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 3px rgba(0,0,0,0.2); z-index: 10; }
-.status-online { color: #40b3e0; font-weight: bold; font-size: 12px; }
-.status-offline { color: #e74c3c; font-weight: bold; font-size: 12px; }
-.btn-panico { background-color: #c0392b; color: white; border: none; padding: 6px 12px; border-radius: 4px; font-size: 12px; cursor: pointer; font-weight: bold; }
+    ws.on('message', (mensagem) => {
+        try {
+            const dados = JSON.parse(mensagem);
 
-.area-mensagens { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; background-color: #0e1621; }
+            // VALIDAÇÃO DE LOGIN COM SENHA INDIVIDUAL
+            if (dados.tipoEvent === 'login') {
+                const credencial = dados.senha ? dados.senha.toLowerCase().trim() : '';
+                if (USUARIOS_AUTORIZADOS[credencial]) {
+                    ws.usuarioAtual = USUARIOS_AUTORIZADOS[credencial];
+                    
+                    ws.send(JSON.stringify({
+                        tipo: 'login_sucesso',
+                        id: ws.usuarioAtual.id,
+                        nome: ws.usuarioAtual.nome,
+                        conteudo: historicoMensagens
+                    }));
+                } else {
+                    ws.send(JSON.stringify({ tipo: 'login_erro' }));
+                }
+            }
+            // NOVA MENSAGEM
+            else if (dados.tipoEvent === 'nova_mensagem') {
+                if (!ws.usuarioAtual) return;
 
-/* BALÕES DE MENSAGENS */
-.mensagem { max-width: 80%; padding: 10px 12px; border-radius: 12px; word-wrap: break-word; font-size: 14px; line-height: 1.4; transition: opacity 0.5s ease, transform 0.5s ease; position: relative; }
-.mensagem.saindo { opacity: 0; transform: scale(0.9); }
-.mensagem-minha { background-color: #2b5278; align-self: flex-end; border-bottom-right-radius: 2px; color: #ffffff; border: 1px solid #3c6e91; }
-.mensagem-outros { background-color: #182533; align-self: flex-start; border-bottom-left-radius: 2px; color: #d1d1d1; border: 1px solid #242f3d; }
+                const novaMsg = {
+                    id: 'msg_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
+                    remetente: ws.usuarioAtual.id,
+                    nomeRemetente: ws.usuarioAtual.nome,
+                    tipoMidia: dados.conteudo.tipoMidia,
+                    conteudo: dados.conteudo.conteudo,
+                    lida: false,
+                    timestamp: Date.now()
+                };
+                
+                historicoMensagens.push(novaMsg);
 
-.status-check { font-size: 11px; margin-left: 6px; float: right; margin-top: 4px; }
-.check-enviado { color: #a0a0a0; }
-.check-lido { color: #40b3e0; }
+                wss.clients.forEach((cliente) => {
+                    if (cliente.readyState === WebSocket.OPEN) {
+                        cliente.send(JSON.stringify({
+                            tipo: 'nova_mensagem',
+                            conteudo: novaMsg
+                        }));
+                    }
+                });
+            } 
+            // CONFIRMAR LEITURA
+            else if (dados.tipoEvent === 'confirmar_leitura') {
+                const msgAlvo = historicoMensagens.find(m => m.id === dados.idMensagem);
+                if (msgAlvo) msgAlvo.lida = true;
 
-.mensagem img { max-width: 100%; border-radius: 6px; margin-bottom: 5px; display: block; }
-.mensagem audio { max-width: 220px; height: 35px; margin-top: 4px; display: block; }
-.indicador-digitando { font-size: 12px; color: #40b3e0; padding: 4px 15px; font-style: italic; height: 20px; background-color: #0e1621; }
+                wss.clients.forEach((cliente) => {
+                    if (cliente.readyState === WebSocket.OPEN) {
+                        cliente.send(JSON.stringify({
+                            tipo: 'mensagem_lida_confirmada',
+                            idMensagem: dados.idMensagem
+                        }));
+                    }
+                });
+            }
+            // DIGITANDO
+            else if (dados.tipoEvent === 'digitando') {
+                if (!ws.usuarioAtual) return;
+                wss.clients.forEach((cliente) => {
+                    if (cliente !== ws && cliente.readyState === WebSocket.OPEN) {
+                        cliente.send(JSON.stringify({
+                            tipo: 'usuario_digitando',
+                            remetente: ws.usuarioAtual.nome,
+                            estado: dados.estado
+                        }));
+                    }
+                });
+            }
+            // LIMPAR HISTÓRICO (Comando 000000)
+            else if (dados.tipoEvent === 'limpar_historico') {
+                historicoMensagens = []; 
+                wss.clients.forEach((cliente) => {
+                    if (cliente.readyState === WebSocket.OPEN) {
+                        cliente.send(JSON.stringify({ tipo: 'historico_limpo' }));
+                    }
+                });
+            }
+        } catch (erro) {
+            console.error("Erro ao processar pacote:", erro);
+        }
+    });
 
-/* RODAPÉ E CONTROLES DE ENTRADA DO CHAT */
-.chat-input-area { position: relative; background-color: #17212b; padding: 10px; display: flex; align-items: center; gap: 8px; box-shadow: 0 -1px 3px rgba(0,0,0,0.2); z-index: 10; }
-.chat-input-area input[type="text"] { flex: 1; padding: 10px 15px; border: none; border-radius: 20px; background-color: #242f3d; color: white; outline: none; font-size: 14px; }
-.chat-input-area input[type="text"]::placeholder { color: #7b8a97; }
+    ws.on('error', (erro) => { console.error("Erro no WebSocket:", erro); });
+});
 
-.btn-acao { background-color: transparent; border: none; font-size: 20px; color: #7b8a97; cursor: pointer; padding: 5px; border-radius: 50%; transition: color 0.2s; display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; }
-.btn-acao:hover { color: #40b3e0; }
-.btn-enviar { background-color: #2b5278; color: white; font-size: 16px; width: 36px; height: 36px; border-radius: 50%; display: flex; justify-content: center; align-items: center; }
+const intervaloMonitor = setInterval(() => {
+    wss.clients.forEach((ws) => {
+        if (ws.isAlive === false) return ws.terminate();
+        ws.isAlive = false;
+        ws.ping();
+    });
+}, 25000);
 
-/* MENUS FLUTUANTES (FOTO / EMOJI) */
-.menu-flutuante { position: absolute; bottom: 65px; left: 10px; background-color: #242f3d; border-radius: 8px; padding: 10px; display: flex; flex-direction: column; gap: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.4); z-index: 30; }
-.menu-flutuante button { background: none; border: none; color: white; font-size: 14px; text-align: left; cursor: pointer; padding: 8px 12px; border-radius: 4px; transition: background 0.2s; }
-.menu-flutuante button:hover { background-color: #2b5278; }
+// Lixeiro inteligente (após 24h e apenas se lida)
+const UM_DIA = 24 * 60 * 60 * 1000;
+const intervaloLimpeza = setInterval(() => {
+    const agora = Date.now();
+    let idsRemovidos = [];
+    
+    historicoMensagens = historicoMensagens.filter(m => {
+        if (agora - m.timestamp > UM_DIA && m.lida === true) {
+            idsRemovidos.push(m.id);
+            return false;
+        }
+        return true;
+    });
 
-.menu-emojis { left: 55px; display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; font-size: 22px; padding: 12px; }
-.menu-emojis span { cursor: pointer; text-align: center; transition: transform 0.2s; padding: 2px; }
-.menu-emojis span:hover { transform: scale(1.25); }
+    if (idsRemovidos.length > 0) {
+        wss.clients.forEach(c => {
+            if (c.readyState === WebSocket.OPEN) {
+                c.send(JSON.stringify({
+                    tipo: 'apagar_antigas',
+                    ids: idsRemovidos
+                }));
+            }
+        });
+    }
+}, 60000);
 
-/* ESTADO DE GRAVAÇÃO DE ÁUDIO */
-.gravando { background-color: #e74c3c !important; color: white !important; animation: pulsar 1.2s infinite; }
-@keyframes pulsar { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
+wss.on('close', () => {
+    clearInterval(intervaloMonitor);
+    clearInterval(intervaloLimpeza);
+});
+
+const PORTA = process.env.PORT || 3000;
+servidor.listen(PORTA, '0.0.0.0', () => {
+    console.log(`[O OBSERVADOR] Servidor rodando na porta ${PORTA}`);
+});
