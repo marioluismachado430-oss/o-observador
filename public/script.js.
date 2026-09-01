@@ -1,5 +1,5 @@
-<!-- LÓGICA DO CLIENTE -->
-    <script>
+
+ 
         const SENHA_MASTER = "106230";
         const SENHA_SALA = "sala123";  
         const TEMPO_INATIVIDADE = 120000; 
@@ -372,4 +372,4 @@
                 btnAudio.innerText = "🎤";
             }
         }
-    </script>
+   
