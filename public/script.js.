@@ -1,9 +1,8 @@
 
  
-       const SENHA_MASTER = "106230";
+    const SENHA_MASTER = "106230";
 const TEMPO_INATIVIDADE = 120000; 
 
-// Identidade local gerenciada pelo servidor
 let idUsuario = localStorage.getItem('id_observador');
 let nomeUsuario = localStorage.getItem('nome_observador');
 
@@ -40,7 +39,6 @@ function validarGatilhoMaster() {
     }
 }
 
-// Inicia a conexão com o WebSocket para enviar a credencial individual
 function validarSenhaSala() {
     const inputSala = document.getElementById('senhaSalaInput');
     if (!inputSala) return;
@@ -51,7 +49,6 @@ function validarSenhaSala() {
         return;
     }
 
-    // Abre a conexão e envia a senha para validação no servidor
     const protocolo = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
     socket = new WebSocket(protocolo + window.location.host);
 
@@ -67,7 +64,6 @@ function validarSenhaSala() {
             const resposta = JSON.parse(evento.data);
 
             if (resposta.tipo === 'login_sucesso') {
-                // Salva a identidade oficial vinda do servidor
                 idUsuario = resposta.id;
                 nomeUsuario = resposta.nome;
                 localStorage.setItem('id_observador', idUsuario);
@@ -81,7 +77,6 @@ function validarSenhaSala() {
                 status.innerText = "Online";
                 status.className = "status-online";
 
-                // Renderiza o histórico recebido
                 const area = document.getElementById('areaMensagens');
                 area.innerHTML = '';
                 resposta.conteudo.forEach(msg => renderizarMensagem(msg, msg.remetente === idUsuario));
@@ -90,7 +85,7 @@ function validarSenhaSala() {
                 configurarEventosSocket();
             } 
             else if (resposta.tipo === 'login_erro') {
-                alert("Credencial de acesso inválida.");
+                alert("Credencial de acesso inválida. Use: mario, gal ou amigos.");
                 if (socket) socket.close();
             }
         } catch (err) {
@@ -206,7 +201,6 @@ function enviarComTentativa(pacote) {
     const pacoteStr = JSON.stringify({ tipoEvent: 'nova_mensagem', conteudo: pacote });
     if (socket && socket.readyState === WebSocket.OPEN) {
         socket.send(pacoteStr);
-        renderizarMensagem(pacote, true);
     } else {
         alert("Conexão perdida. Faça o login novamente.");
     }
