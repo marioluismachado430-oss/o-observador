@@ -177,9 +177,19 @@ function renderizarMensagem(pacote, eMinha) {
         conteudoHTML += `<div style="font-size: 11px; color: #40b3e0; margin-bottom: 5px; font-weight: bold;">${pacote.nomeRemetente || 'Anônimo'}</div>`;
     }
 
-    if (pacote.tipoMidia === 'texto') conteudoHTML += `<span>${pacote.conteudo}</span>`;
-    else if (pacote.tipoMidia === 'imagem') conteudoHTML += `<img src="${pacote.conteudo}" alt="Imagem">`;
-    else if (pacote.tipoMidia === 'audio') conteudoHTML += `<audio src="${pacote.conteudo}" controls preload="auto"></audio>`;
+    if (pacote.tipoMidia === 'texto') {
+        conteudoHTML += `<span>${pacote.conteudo}</span>`;
+    }
+    else if (pacote.tipoMidia === 'imagem') {
+        conteudoHTML += `<img src="${pacote.conteudo}" alt="Imagem">`;
+    }
+    else if (pacote.tipoMidia === 'audio') {
+        conteudoHTML += `<audio controls preload="metadata" style="width: 100%; min-width: 200px;">
+                            <source src="${pacote.conteudo}" type="audio/webm">
+                            <source src="${pacote.conteudo}" type="audio/mp4">
+                            Seu navegador não suporta áudio.
+                         </audio>`;
+    }
 
     const iconeBase = pacote.lida ? '✓✓' : '✓';
     const classeBase = pacote.lida ? 'status-check check-lido' : 'status-check check-enviado';
@@ -286,7 +296,6 @@ function processarArquivoImagem(e) {
 document.getElementById('cameraInput').addEventListener('change', processarArquivoImagem);
 document.getElementById('galeriaInput').addEventListener('change', processarArquivoImagem);
 
-// GRAVAÇÃO DE ÁUDIO BLINDADA E COMPATÍVEL COM MÓVEIS
 async function toggleGravacaoAudio() {
     const btnAudio = document.getElementById('btnAudio');
     
@@ -294,7 +303,6 @@ async function toggleGravacaoAudio() {
         try {
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
             
-            // Detecta o formato suportado pelo dispositivo (Safari/iOS vs Android/Chrome)
             let mimeType = 'audio/webm';
             if (MediaRecorder.isTypeSupported('audio/mp4')) {
                 mimeType = 'audio/mp4';
