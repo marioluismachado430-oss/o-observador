@@ -13,11 +13,11 @@ const wss = new WebSocket.Server({
 
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Base de usuários autorizados com senhas específicas
+// Credenciais atualizadas
 const USUARIOS_AUTORIZADOS = {
-    "senha_mario": { id: "user_mario", nome: "Mario Luis" },
-    "senha_fardim": { id: "user_fardim", nome: "Fardim" },
-    "senha_matheus": { id: "user_matheus", nome: "Matheus Fritz" }
+    "mario": { id: "user_mario", nome: "Mario Luis" },
+    "gal": { id: "user_gal", nome: "Gal" },
+    "amigos": { id: "user_amigos", nome: "Amigos" }
 };
 
 let historicoMensagens = [];
@@ -32,13 +32,11 @@ wss.on('connection', (ws) => {
         try {
             const dados = JSON.parse(mensagem);
 
-            // TENTATIVA DE LOGIN COM SENHA INDIVIDUAL
             if (dados.tipoEvent === 'login') {
-                const credencial = dados.senha;
+                const credencial = dados.senha.toLowerCase().trim();
                 if (USUARIOS_AUTORIZADOS[credencial]) {
                     ws.usuarioAtual = USUARIOS_AUTORIZADOS[credencial];
                     
-                    // Responde com sucesso, enviando o ID, o Nome e o histórico
                     ws.send(JSON.stringify({
                         tipo: 'login_sucesso',
                         id: ws.usuarioAtual.id,
@@ -49,9 +47,8 @@ wss.on('connection', (ws) => {
                     ws.send(JSON.stringify({ tipo: 'login_erro' }));
                 }
             }
-            // NOVA MENSAGEM
             else if (dados.tipoEvent === 'nova_mensagem') {
-                if (!ws.usuarioAtual) return; // Segurança: precisa estar logado
+                if (!ws.usuarioAtual) return;
 
                 const novaMsg = {
                     id: 'msg_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
@@ -74,7 +71,6 @@ wss.on('connection', (ws) => {
                     }
                 });
             } 
-            // CONFIRMAR LEITURA
             else if (dados.tipoEvent === 'confirmar_leitura') {
                 const msgAlvo = historicoMensagens.find(m => m.id === dados.idMensagem);
                 if (msgAlvo) msgAlvo.lida = true;
@@ -88,7 +84,6 @@ wss.on('connection', (ws) => {
                     }
                 });
             }
-            // DIGITANDO
             else if (dados.tipoEvent === 'digitando') {
                 if (!ws.usuarioAtual) return;
                 wss.clients.forEach((cliente) => {
@@ -101,7 +96,6 @@ wss.on('connection', (ws) => {
                     }
                 });
             }
-            // LIMPAR HISTÓRICO (Comando 000000)
             else if (dados.tipoEvent === 'limpar_historico') {
                 historicoMensagens = []; 
                 wss.clients.forEach((cliente) => {
@@ -118,7 +112,6 @@ wss.on('connection', (ws) => {
     ws.on('error', (erro) => { console.error("Erro no WebSocket:", erro); });
 });
 
-// Monitor de conexão
 const intervaloMonitor = setInterval(() => {
     wss.clients.forEach((ws) => {
         if (ws.isAlive === false) return ws.terminate();
@@ -127,7 +120,6 @@ const intervaloMonitor = setInterval(() => {
     });
 }, 25000);
 
-// Lixeiro inteligente de 24 horas (só apaga se lida)
 const UM_DIA = 24 * 60 * 60 * 1000;
 const intervaloLimpeza = setInterval(() => {
     const agora = Date.now();
