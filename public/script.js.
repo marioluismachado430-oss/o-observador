@@ -52,11 +52,15 @@ function validarSenhaSala() {
 }
 
 function conectarEAutenticar(senha) {
+    if (socket) {
+        socket.onclose = null;
+        socket.close();
+    }
+
     const protocolo = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
     socket = new WebSocket(protocolo + window.location.host);
 
     socket.onopen = () => {
-        // Envia o login imediatamente após abrir a conexão com segurança
         socket.send(JSON.stringify({
             tipoEvent: 'login',
             senha: senha
@@ -113,7 +117,9 @@ function configurarEventosSocket() {
         status.innerText = "Desconectado";
         status.className = "status-offline";
         clearTimeout(tempoReconexao);
-        tempoReconexao = setTimeout(() => { window.location.reload(); }, 3000);
+        tempoReconexao = setTimeout(() => { 
+            if (senhaPendenteLogin) conectarEAutenticar(senhaPendenteLogin);
+        }, 3000);
     };
 
     socket.onmessage = (evento) => {
@@ -233,6 +239,7 @@ function enviarComTentativa(pacote) {
 function botaoPanicoSair() { bloquearPorInatividade(); }
 
 function bloquearPorInatividade() {
+    senhaPendenteLogin = "";
     document.getElementById('telaChat').classList.add('oculto');
     document.getElementById('modalSala').classList.add('oculto');
     document.getElementById('telaJornal').classList.remove('oculto');
