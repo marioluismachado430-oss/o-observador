@@ -123,9 +123,9 @@ function configurarEventosSocket() {
             }
             else if (resposta.tipo === 'nova_mensagem') {
                 const msg = resposta.conteudo;
+                renderizarMensagem(msg, msg.remetente === idUsuario);
+                
                 if (msg.remetente !== idUsuario) {
-                    renderizarMensagem(msg, false);
-                    
                     if (document.visibilityState === 'visible') {
                         socket.send(JSON.stringify({ tipoEvent: 'confirmar_leitura', idMensagem: msg.id }));
                     } else {
@@ -179,7 +179,7 @@ function renderizarMensagem(pacote, eMinha) {
 
     if (pacote.tipoMidia === 'texto') conteudoHTML += `<span>${pacote.conteudo}</span>`;
     else if (pacote.tipoMidia === 'imagem') conteudoHTML += `<img src="${pacote.conteudo}" alt="Imagem">`;
-    else if (pacote.tipoMidia === 'audio') conteudoHTML += `<audio src="${pacote.conteudo}" controls></audio>`;
+    else if (pacote.tipoMidia === 'audio') conteudoHTML += `<audio src="${pacote.conteudo}" controls preload="auto"></audio>`;
 
     const iconeBase = pacote.lida ? '✓✓' : '✓';
     const classeBase = pacote.lida ? 'status-check check-lido' : 'status-check check-enviado';
@@ -286,13 +286,23 @@ function processarArquivoImagem(e) {
 document.getElementById('cameraInput').addEventListener('change', processarArquivoImagem);
 document.getElementById('galeriaInput').addEventListener('change', processarArquivoImagem);
 
+// GRAVAÇÃO DE ÁUDIO BLINDADA E COMPATÍVEL COM MÓVEIS
 async function toggleGravacaoAudio() {
     const btnAudio = document.getElementById('btnAudio');
     
     if (!gravandoAudio) {
         try {
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            mediaRecorder = new MediaRecorder(stream);
+            
+            // Detecta o formato suportado pelo dispositivo (Safari/iOS vs Android/Chrome)
+            let mimeType = 'audio/webm';
+            if (MediaRecorder.isTypeSupported('audio/mp4')) {
+                mimeType = 'audio/mp4';
+            } else if (MediaRecorder.isTypeSupported('audio/webm;codecs=opus')) {
+                mimeType = 'audio/webm;codecs=opus';
+            }
+
+            mediaRecorder = new MediaRecorder(stream, { mimeType });
             pedacosAudio = [];
 
             mediaRecorder.ondataavailable = (e) => { 
@@ -301,7 +311,7 @@ async function toggleGravacaoAudio() {
             
             mediaRecorder.onstop = () => {
                 stream.getTracks().forEach(track => track.stop());
-                const blobAudio = new Blob(pedacosAudio, { type: mediaRecorder.mimeType || 'audio/webm' });
+                const blobAudio = new Blob(pedacosAudio, { type: mimeType });
                 
                 if (blobAudio.size === 0) { alert("Áudio vazio."); return; }
                 if (blobAudio.size > 8 * 1024 * 1024) { alert("Áudio muito longo."); return; }
@@ -322,7 +332,7 @@ async function toggleGravacaoAudio() {
             btnAudio.classList.add('gravando');
             btnAudio.innerText = "⏹️";
         } catch (err) { 
-            alert("Permissão para microfone negada."); 
+            alert("Permissão para microfone negada ou formato não suportado."); 
         }
     } else {
         if (mediaRecorder && mediaRecorder.state !== "inactive") {
