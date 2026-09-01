@@ -12,6 +12,7 @@ let gravandoAudio = false;
 let tempoDigitandoTimeout;
 let tempoReconexao;
 let mensagensLidasEmEspera = [];
+let senhaPendenteLogin = "";
 
 setInterval(() => {
     const relogio = document.getElementById('relogioAtual');
@@ -40,20 +41,25 @@ function validarGatilhoMaster() {
 function validarSenhaSala() {
     const inputSala = document.getElementById('senhaSalaInput');
     if (!inputSala) return;
-    const senhaInformada = inputSala.value.trim();
+    senhaPendenteLogin = inputSala.value.trim();
 
-    if (senhaInformada === "") {
+    if (senhaPendenteLogin === "") {
         alert("Digite uma credencial válida.");
         return;
     }
 
+    conectarEAutenticar(senhaPendenteLogin);
+}
+
+function conectarEAutenticar(senha) {
     const protocolo = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
     socket = new WebSocket(protocolo + window.location.host);
 
     socket.onopen = () => {
+        // Envia o login imediatamente após abrir a conexão com segurança
         socket.send(JSON.stringify({
             tipoEvent: 'login',
-            senha: senhaInformada
+            senha: senha
         }));
     };
 
@@ -67,7 +73,9 @@ function validarSenhaSala() {
                 localStorage.setItem('id_observador', idUsuario);
                 localStorage.setItem('nome_observador', nomeUsuario);
 
-                inputSala.value = "";
+                const inputSala = document.getElementById('senhaSalaInput');
+                if (inputSala) inputSala.value = "";
+
                 document.getElementById('modalSala').classList.add('oculto');
                 document.getElementById('telaChat').classList.remove('oculto');
                 
@@ -86,8 +94,11 @@ function validarSenhaSala() {
                 alert("Credencial de acesso inválida. Use: mario, gal ou amigos.");
                 if (socket) socket.close();
             }
+            else {
+                processarMensagemSocket(resposta);
+            }
         } catch (err) {
-            console.error("Erro no login:", err);
+            console.error("Erro no processamento:", err);
         }
     };
 
@@ -108,40 +119,43 @@ function configurarEventosSocket() {
     socket.onmessage = (evento) => {
         try {
             const resposta = JSON.parse(evento.data);
-
-            if (resposta.tipo === 'historico_limpo') {
-                document.getElementById('areaMensagens').innerHTML = '';
-            }
-            else if (resposta.tipo === 'apagar_antigas') {
-                resposta.ids.forEach(id => {
-                    const elem = document.getElementById(`msg-${id}`);
-                    if (elem) {
-                        elem.classList.add('saindo');
-                        setTimeout(() => { if (elem.parentNode) elem.remove(); }, 500);
-                    }
-                });
-            }
-            else if (resposta.tipo === 'nova_mensagem') {
-                const msg = resposta.conteudo;
-                renderizarMensagem(msg, msg.remetente === idUsuario);
-                
-                if (msg.remetente !== idUsuario) {
-                    if (document.visibilityState === 'visible') {
-                        socket.send(JSON.stringify({ tipoEvent: 'confirmar_leitura', idMensagem: msg.id }));
-                    } else {
-                        mensagensLidasEmEspera.push(msg.id);
-                    }
-                }
-            }
-            else if (resposta.tipo === 'mensagem_lida_confirmada') {
-                removerMensagemLida(resposta.idMensagem);
-            }
-            else if (resposta.tipo === 'usuario_digitando') {
-                const elem = document.getElementById('indicadorDigitando');
-                elem.innerText = resposta.estado ? `${resposta.remetente} está digitando...` : "";
-            }
+            processarMensagemSocket(resposta);
         } catch (err) { console.error("Erro nas mensagens:", err); }
     };
+}
+
+function processarMensagemSocket(resposta) {
+    if (resposta.tipo === 'historico_limpo') {
+        document.getElementById('areaMensagens').innerHTML = '';
+    }
+    else if (resposta.tipo === 'apagar_antigas') {
+        resposta.ids.forEach(id => {
+            const elem = document.getElementById(`msg-${id}`);
+            if (elem) {
+                elem.classList.add('saindo');
+                setTimeout(() => { if (elem.parentNode) elem.remove(); }, 500);
+            }
+        });
+    }
+    else if (resposta.tipo === 'nova_mensagem') {
+        const msg = resposta.conteudo;
+        renderizarMensagem(msg, msg.remetente === idUsuario);
+        
+        if (msg.remetente !== idUsuario) {
+            if (document.visibilityState === 'visible') {
+                socket.send(JSON.stringify({ tipoEvent: 'confirmar_leitura', idMensagem: msg.id }));
+            } else {
+                mensagensLidasEmEspera.push(msg.id);
+            }
+        }
+    }
+    else if (resposta.tipo === 'mensagem_lida_confirmada') {
+        removerMensagemLida(resposta.idMensagem);
+    }
+    else if (resposta.tipo === 'usuario_digitando') {
+        const elem = document.getElementById('indicadorDigitando');
+        elem.innerText = resposta.estado ? `${resposta.remetente} está digitando...` : "";
+    }
 }
 
 document.addEventListener("visibilitychange", () => {
@@ -167,7 +181,9 @@ function notificarDigitando() {
 
 function renderizarMensagem(pacote, eMinha) {
     const area = document.getElementById('areaMensagens');
+    if (!area) return;
     if (document.getElementById(`msg-${pacote.id}`)) return;
+    
     const balao = document.createElement('div');
     balao.id = `msg-${pacote.id}`;
     balao.classList.add('mensagem', eMinha ? 'mensagem-minha' : 'mensagem-outros');
