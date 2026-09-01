@@ -13,7 +13,7 @@ const wss = new WebSocket.Server({
 
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Credenciais atualizadas
+// Credenciais de acesso individuais
 const USUARIOS_AUTORIZADOS = {
     "mario": { id: "user_mario", nome: "Mario Luis" },
     "gal": { id: "user_gal", nome: "Gal" },
@@ -32,8 +32,9 @@ wss.on('connection', (ws) => {
         try {
             const dados = JSON.parse(mensagem);
 
+            // VALIDAÇÃO DE LOGIN COM SENHA INDIVIDUAL
             if (dados.tipoEvent === 'login') {
-                const credencial = dados.senha.toLowerCase().trim();
+                const credencial = dados.senha ? dados.senha.toLowerCase().trim() : '';
                 if (USUARIOS_AUTORIZADOS[credencial]) {
                     ws.usuarioAtual = USUARIOS_AUTORIZADOS[credencial];
                     
@@ -47,6 +48,7 @@ wss.on('connection', (ws) => {
                     ws.send(JSON.stringify({ tipo: 'login_erro' }));
                 }
             }
+            // NOVA MENSAGEM
             else if (dados.tipoEvent === 'nova_mensagem') {
                 if (!ws.usuarioAtual) return;
 
@@ -71,6 +73,7 @@ wss.on('connection', (ws) => {
                     }
                 });
             } 
+            // CONFIRMAR LEITURA
             else if (dados.tipoEvent === 'confirmar_leitura') {
                 const msgAlvo = historicoMensagens.find(m => m.id === dados.idMensagem);
                 if (msgAlvo) msgAlvo.lida = true;
@@ -84,6 +87,7 @@ wss.on('connection', (ws) => {
                     }
                 });
             }
+            // DIGITANDO
             else if (dados.tipoEvent === 'digitando') {
                 if (!ws.usuarioAtual) return;
                 wss.clients.forEach((cliente) => {
@@ -96,6 +100,7 @@ wss.on('connection', (ws) => {
                     }
                 });
             }
+            // LIMPAR HISTÓRICO (Comando 000000)
             else if (dados.tipoEvent === 'limpar_historico') {
                 historicoMensagens = []; 
                 wss.clients.forEach((cliente) => {
@@ -120,6 +125,7 @@ const intervaloMonitor = setInterval(() => {
     });
 }, 25000);
 
+// Lixeiro inteligente (após 24h e apenas se lida)
 const UM_DIA = 24 * 60 * 60 * 1000;
 const intervaloLimpeza = setInterval(() => {
     const agora = Date.now();
