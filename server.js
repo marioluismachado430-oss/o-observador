@@ -6,14 +6,14 @@ const path = require('path');
 const app = express();
 const servidor = http.createServer(app);
 
+// Aumentado para 50MB para suportar imagens de alta qualidade e áudios longos sem desconectar
 const wss = new WebSocket.Server({ 
     server: servidor,
-    maxPayload: 10 * 1024 * 1024 
+    maxPayload: 50 * 1024 * 1024 
 });
 
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Credenciais de acesso individuais
 const USUARIOS_AUTORIZADOS = {
     "mario": { id: "user_mario", nome: "Mario Luis" },
     "gal": { id: "user_gal", nome: "Gal" },
@@ -32,7 +32,6 @@ wss.on('connection', (ws) => {
         try {
             const dados = JSON.parse(mensagem);
 
-            // VALIDAÇÃO DE LOGIN COM SENHA INDIVIDUAL
             if (dados.tipoEvent === 'login') {
                 const credencial = dados.senha ? dados.senha.toLowerCase().trim() : '';
                 if (USUARIOS_AUTORIZADOS[credencial]) {
@@ -48,7 +47,6 @@ wss.on('connection', (ws) => {
                     ws.send(JSON.stringify({ tipo: 'login_erro' }));
                 }
             }
-            // NOVA MENSAGEM (Com suporte a Citação/Reply)
             else if (dados.tipoEvent === 'nova_mensagem') {
                 if (!ws.usuarioAtual) return;
 
@@ -62,7 +60,7 @@ wss.on('connection', (ws) => {
                     reacoes: {},
                     lida: false,
                     timestampCriacao: Date.now(),
-                    timestampLeitura: null // O tempo de 24h só começa após a leitura
+                    timestampLeitura: null
                 };
                 
                 historicoMensagens.push(novaMsg);
@@ -76,7 +74,6 @@ wss.on('connection', (ws) => {
                     }
                 });
             } 
-            // ADICIONAR OU REMOVER REAÇÃO DE EMOJI
             else if (dados.tipoEvent === 'adicionar_reacao') {
                 if (!ws.usuarioAtual) return;
                 const msgAlvo = historicoMensagens.find(m => m.id === dados.idMensagem);
@@ -104,7 +101,6 @@ wss.on('connection', (ws) => {
                     });
                 }
             }
-            // CONFIRMAR LEITURA (Dispara o cronômetro de 24h apenas após lida)
             else if (dados.tipoEvent === 'confirmar_leitura') {
                 const msgAlvo = historicoMensagens.find(m => m.id === dados.idMensagem);
                 if (msgAlvo && !msgAlvo.lida) {
@@ -121,7 +117,6 @@ wss.on('connection', (ws) => {
                     }
                 });
             }
-            // DIGITANDO
             else if (dados.tipoEvent === 'digitando') {
                 if (!ws.usuarioAtual) return;
                 wss.clients.forEach((cliente) => {
@@ -134,7 +129,6 @@ wss.on('connection', (ws) => {
                     }
                 });
             }
-            // LIMPAR HISTÓRICO (Comando 000000)
             else if (dados.tipoEvent === 'limpar_historico') {
                 historicoMensagens = []; 
                 wss.clients.forEach((cliente) => {
@@ -159,7 +153,6 @@ const intervaloMonitor = setInterval(() => {
     });
 }, 25000);
 
-// LIXEIRO INTELIGENTE: Remove a mensagem apenas 24h APÓS ter sido lida
 const UM_DIA = 24 * 60 * 60 * 1000;
 const intervaloLimpeza = setInterval(() => {
     const agora = Date.now();
