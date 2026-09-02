@@ -59,7 +59,8 @@ wss.on('connection', (ws) => {
                     tipoMidia: dados.conteudo.tipoMidia,
                     conteudo: dados.conteudo.conteudo,
                     lida: false,
-                    timestamp: Date.now()
+                    timestampCriacao: Date.now(),
+                    timestampLeitura: null // Só começa a contar o tempo após a leitura do receptor
                 };
                 
                 historicoMensagens.push(novaMsg);
@@ -73,10 +74,13 @@ wss.on('connection', (ws) => {
                     }
                 });
             } 
-            // CONFIRMAR LEITURA
+            // CONFIRMAR LEITURA (Dispara a contagem de 24h apenas após lida)
             else if (dados.tipoEvent === 'confirmar_leitura') {
                 const msgAlvo = historicoMensagens.find(m => m.id === dados.idMensagem);
-                if (msgAlvo) msgAlvo.lida = true;
+                if (msgAlvo && !msgAlvo.lida) {
+                    msgAlvo.lida = true;
+                    msgAlvo.timestampLeitura = Date.now(); // Marca o momento exato da leitura
+                }
 
                 wss.clients.forEach((cliente) => {
                     if (cliente.readyState === WebSocket.OPEN) {
@@ -125,14 +129,15 @@ const intervaloMonitor = setInterval(() => {
     });
 }, 25000);
 
-// Lixeiro inteligente (após 24h e apenas se lida)
+// LIXEIRO INTELIGENTE: Remove a mensagem apenas 24h APÓS ter sido lida
 const UM_DIA = 24 * 60 * 60 * 1000;
 const intervaloLimpeza = setInterval(() => {
     const agora = Date.now();
     let idsRemovidos = [];
     
     historicoMensagens = historicoMensagens.filter(m => {
-        if (agora - m.timestamp > UM_DIA && m.lida === true) {
+        // A mensagem só é eliminada se já foi lida E se passaram 24h desde o timestampLeitura
+        if (m.lida === true && m.timestampLeitura && (agora - m.timestampLeitura > UM_DIA)) {
             idsRemovidos.push(m.id);
             return false;
         }
