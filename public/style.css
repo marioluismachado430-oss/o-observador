@@ -47,12 +47,29 @@ body {
 .status-offline { color: #e74c3c; font-weight: bold; font-size: 12px; }
 .btn-panico { background-color: #c0392b; color: white; border: none; padding: 6px 12px; border-radius: 4px; font-size: 12px; cursor: pointer; font-weight: bold; }
 
-.area-mensagens { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; background-color: #0e1621; }
+.area-mensagens { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; background-color: #0e1621; }
 
-.mensagem { max-width: 80%; padding: 10px 12px; border-radius: 12px; word-wrap: break-word; font-size: 14px; line-height: 1.4; transition: opacity 0.5s ease, transform 0.5s ease; position: relative; }
+.mensagem { max-width: 80%; padding: 10px 12px; border-radius: 12px; word-wrap: break-word; font-size: 14px; line-height: 1.4; transition: opacity 0.5s ease, transform 0.5s ease; position: relative; cursor: pointer; }
 .mensagem.saindo { opacity: 0; transform: scale(0.9); }
 .mensagem-minha { background-color: #2b5278; align-self: flex-end; border-bottom-right-radius: 2px; color: #ffffff; border: 1px solid #3c6e91; }
 .mensagem-outros { background-color: #182533; align-self: flex-start; border-bottom-left-radius: 2px; color: #d1d1d1; border: 1px solid #242f3d; }
+
+.citacao-balao { background: rgba(0, 0, 0, 0.25); border-left: 3px solid #40b3e0; padding: 6px 8px; margin-bottom: 6px; border-radius: 4px; font-size: 12px; }
+.citacao-balao-remetente { color: #40b3e0; font-weight: bold; margin-bottom: 2px; }
+.citacao-balao-texto { color: #bbb; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+
+.chat-input-container { display: flex; flex-direction: column; background-color: #17212b; box-shadow: 0 -1px 3px rgba(0,0,0,0.2); z-index: 10; }
+.painel-citacao { background-color: #1f2c34; padding: 8px 12px; display: flex; justify-content: space-between; align-items: center; border-left: 4px solid #40b3e0; border-top: 1px solid #242f3d; }
+.citacao-conteudo { flex: 1; overflow: hidden; }
+.btn-fechar-citacao { background: none; border: none; color: #aaa; font-size: 16px; cursor: pointer; padding: 0 8px; }
+.btn-fechar-citacao:hover { color: #fff; }
+
+.container-reacoes { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+.reacao-badge { background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 10px; padding: 2px 6px; font-size: 12px; display: inline-flex; align-items: center; gap: 4px; color: #fff; }
+
+.menu-reacoes-rapidas { position: absolute; background: #242f3d; border-radius: 20px; padding: 6px 12px; display: flex; gap: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.5); z-index: 40; font-size: 18px; top: -35px; left: 10px; border: 1px solid #3c6e91; }
+.menu-reacoes-rapidas span { cursor: pointer; transition: transform 0.2s; }
+.menu-reacoes-rapidas span:hover { transform: scale(1.3); }
 
 .status-check { font-size: 11px; margin-left: 6px; float: right; margin-top: 4px; }
 .check-enviado { color: #a0a0a0; }
@@ -62,7 +79,7 @@ body {
 .mensagem audio { max-width: 220px; height: 35px; margin-top: 4px; display: block; }
 .indicador-digitando { font-size: 12px; color: #40b3e0; padding: 4px 15px; font-style: italic; height: 20px; background-color: #0e1621; }
 
-.chat-input-area { position: relative; background-color: #17212b; padding: 10px; display: flex; align-items: center; gap: 8px; box-shadow: 0 -1px 3px rgba(0,0,0,0.2); z-index: 10; }
+.chat-input-area { position: relative; background-color: #17212b; padding: 10px; display: flex; align-items: center; gap: 8px; }
 .chat-input-area input[type="text"] { flex: 1; padding: 10px 15px; border: none; border-radius: 20px; background-color: #242f3d; color: white; outline: none; font-size: 14px; }
 .chat-input-area input[type="text"]::placeholder { color: #7b8a97; }
 
