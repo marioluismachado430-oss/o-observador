@@ -48,7 +48,7 @@ wss.on('connection', (ws) => {
                     ws.send(JSON.stringify({ tipo: 'login_erro' }));
                 }
             }
-            // NOVA MENSAGEM
+            // NOVA MENSAGEM (Com suporte a Citação/Reply)
             else if (dados.tipoEvent === 'nova_mensagem') {
                 if (!ws.usuarioAtual) return;
 
@@ -58,9 +58,11 @@ wss.on('connection', (ws) => {
                     nomeRemetente: ws.usuarioAtual.nome,
                     tipoMidia: dados.conteudo.tipoMidia,
                     conteudo: dados.conteudo.conteudo,
+                    citacao: dados.conteudo.citacao || null,
+                    reacoes: {},
                     lida: false,
                     timestampCriacao: Date.now(),
-                    timestampLeitura: null // Só começa a contar o tempo após a leitura do receptor
+                    timestampLeitura: null // O tempo de 24h só começa após a leitura
                 };
                 
                 historicoMensagens.push(novaMsg);
@@ -74,12 +76,40 @@ wss.on('connection', (ws) => {
                     }
                 });
             } 
-            // CONFIRMAR LEITURA (Dispara a contagem de 24h apenas após lida)
+            // ADICIONAR OU REMOVER REAÇÃO DE EMOJI
+            else if (dados.tipoEvent === 'adicionar_reacao') {
+                if (!ws.usuarioAtual) return;
+                const msgAlvo = historicoMensagens.find(m => m.id === dados.idMensagem);
+                if (msgAlvo) {
+                    const emoji = dados.emoji;
+                    if (!msgAlvo.reacoes[emoji]) {
+                        msgAlvo.reacoes[emoji] = [];
+                    }
+                    const index = msgAlvo.reacoes[emoji].indexOf(ws.usuarioAtual.id);
+                    if (index > -1) {
+                        msgAlvo.reacoes[emoji].splice(index, 1);
+                        if (msgAlvo.reacoes[emoji].length === 0) delete msgAlvo.reacoes[emoji];
+                    } else {
+                        msgAlvo.reacoes[emoji].push(ws.usuarioAtual.id);
+                    }
+
+                    wss.clients.forEach((cliente) => {
+                        if (cliente.readyState === WebSocket.OPEN) {
+                            cliente.send(JSON.stringify({
+                                tipo: 'atualizar_reacoes',
+                                idMensagem: msgAlvo.id,
+                                reacoes: msgAlvo.reacoes
+                            }));
+                        }
+                    });
+                }
+            }
+            // CONFIRMAR LEITURA (Dispara o cronômetro de 24h apenas após lida)
             else if (dados.tipoEvent === 'confirmar_leitura') {
                 const msgAlvo = historicoMensagens.find(m => m.id === dados.idMensagem);
                 if (msgAlvo && !msgAlvo.lida) {
                     msgAlvo.lida = true;
-                    msgAlvo.timestampLeitura = Date.now(); // Marca o momento exato da leitura
+                    msgAlvo.timestampLeitura = Date.now();
                 }
 
                 wss.clients.forEach((cliente) => {
@@ -136,7 +166,6 @@ const intervaloLimpeza = setInterval(() => {
     let idsRemovidos = [];
     
     historicoMensagens = historicoMensagens.filter(m => {
-        // A mensagem só é eliminada se já foi lida E se passaram 24h desde o timestampLeitura
         if (m.lida === true && m.timestampLeitura && (agora - m.timestampLeitura > UM_DIA)) {
             idsRemovidos.push(m.id);
             return false;
