@@ -13,11 +13,69 @@ let tempoDigitandoTimeout;
 let tempoReconexao;
 let mensagensLidasEmEspera = [];
 let senhaPendenteLogin = "";
+let mensagemCitadaAtiva = null;
+let tituloOriginal = document.title;
+let intervaloPiscarTitulo = null;
 
 setInterval(() => {
     const relogio = document.getElementById('relogioAtual');
     if (relogio) relogio.innerText = new Date().toLocaleTimeString('pt-BR');
 }, 1000);
+
+// --- WEB AUDIO API: SOM SUTIL DE NOTIFICAÇÃO ---
+function tocarSomNotificacao() {
+    try {
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(587.33, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.15);
+        
+        gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
+        
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.3);
+    } catch (e) {
+        console.log("Áudio bloqueado pelo navegador até haver interação.");
+    }
+}
+
+// --- ALERTA VISUAL: PISCAR ABA DO NAVEGADOR ---
+document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === 'visible') {
+        pararAlertaVisual();
+        if (mensagensLidasEmEspera.length > 0 && socket && socket.readyState === WebSocket.OPEN) {
+            mensagensLidasEmEspera.forEach(id => {
+                socket.send(JSON.stringify({ tipoEvent: 'confirmar_leitura', idMensagem: id }));
+            });
+            mensagensLidasEmEspera = [];
+        }
+    }
+});
+
+function iniciarAlertaVisual(remetenteNome) {
+    if (document.visibilityState !== 'visible' && !intervaloPiscarTitulo) {
+        let alternar = false;
+        intervaloPiscarTitulo = setInterval(() => {
+            document.title = alternar ? `💬 Nova mensagem de ${remetenteNome}` : tituloOriginal;
+            alternar = !alternar;
+        }, 1200);
+    }
+}
+
+function pararAlertaVisual() {
+    if (intervaloPiscarTitulo) {
+        clearInterval(intervaloPiscarTitulo);
+        intervaloPiscarTitulo = null;
+        document.title = tituloOriginal;
+    }
+}
 
 function validarGatilhoMaster() {
     const campo = document.getElementById('campoBusca');
@@ -148,6 +206,9 @@ function processarMensagemSocket(resposta) {
         renderizarMensagem(msg, msg.remetente === idUsuario);
         
         if (msg.remetente !== idUsuario) {
+            tocarSomNotificacao();
+            iniciarAlertaVisual(msg.nomeRemetente);
+
             if (document.visibilityState === 'visible') {
                 socket.send(JSON.stringify({ tipoEvent: 'confirmar_leitura', idMensagem: msg.id }));
             } else {
@@ -158,30 +219,98 @@ function processarMensagemSocket(resposta) {
     else if (resposta.tipo === 'mensagem_lida_confirmada') {
         removerMensagemLida(resposta.idMensagem);
     }
+    else if (resposta.tipo === 'atualizar_reacoes') {
+        atualizarReacoesNaTela(resposta.idMensagem, resposta.reacoes);
+    }
     else if (resposta.tipo === 'usuario_digitando') {
         const elem = document.getElementById('indicadorDigitando');
         elem.innerText = resposta.estado ? `${resposta.remetente} está digitando...` : "";
     }
 }
 
-document.addEventListener("visibilitychange", () => {
-    if (document.visibilityState === 'visible' && mensagensLidasEmEspera.length > 0) {
-        if (socket && socket.readyState === WebSocket.OPEN) {
-            mensagensLidasEmEspera.forEach(id => {
-                socket.send(JSON.stringify({ tipoEvent: 'confirmar_leitura', idMensagem: id }));
-            });
-            mensagensLidasEmEspera = [];
+// --- CITAÇÃO (REPLY) ---
+function prepararCitacao(idMsg, nomeRemetente, textoResumo) {
+    mensagemCitadaAtiva = { id: idMsg, remetente: nomeRemetente, texto: textoResumo };
+    document.getElementById('citacaoTextoRemetente').innerText = `Respondendo a ${nomeRemetente}`;
+    document.getElementById('citacaoTextoMensagem').innerText = textoResumo;
+    document.getElementById('painelCitacao').classList.remove('oculto');
+    document.getElementById('mensagemInput').focus();
+}
+
+function cancelarCitacao() {
+    mensagemCitadaAtiva = null;
+    document.getElementById('painelCitacao').classList.add('oculto');
+}
+
+// --- REAÇÕES RÁPIDAS ---
+function abrirMenuReacoes(event, idMsg) {
+    event.stopPropagation();
+    fecharMenusFlutuantes();
+
+    const balao = document.getElementById(`msg-${idMsg}`);
+    if (!balao) return;
+
+    let menu = balao.querySelector('.menu-reacoes-rapidas');
+    if (menu) {
+        menu.remove();
+        return;
+    }
+
+    menu = document.createElement('div');
+    menu.className = 'menu-reacoes-rapidas';
+    ['👍', '❤️', '🔥', '👀', '😂'].forEach(emoji => {
+        const span = document.createElement('span');
+        span.innerText = emoji;
+        span.onclick = (e) => {
+            e.stopPropagation();
+            enviarReacao(idMsg, emoji);
+            menu.remove();
+        };
+        menu.appendChild(span);
+    });
+
+    balao.appendChild(menu);
+
+    document.addEventListener('click', function fecharMenu(e) {
+        if (!menu.contains(e.target)) {
+            menu.remove();
+            document.removeEventListener('click', fecharMenu);
+        }
+    }, { once: true });
+}
+
+function enviarReacao(idMensagem, emoji) {
+    if (socket && socket.readyState === WebSocket.OPEN) {
+        socket.send(JSON.stringify({
+            tipoEvent: 'adicionar_reacao',
+            idMensagem: idMensagem,
+            emoji: emoji
+        }));
+    }
+}
+
+function atualizarReacoesNaTela(idMensagem, reacoes) {
+    const balao = document.getElementById(`msg-${idMensagem}`);
+    if (!balao) return;
+
+    let container = balao.querySelector('.container-reacoes');
+    if (!container) {
+        container = document.createElement('div');
+        container.className = 'container-reacoes';
+        balao.appendChild(container);
+    }
+
+    container.innerHTML = '';
+    for (const [emoji, usuarios] of Object.entries(reacoes)) {
+        if (usuarios.length > 0) {
+            const badge = document.createElement('span');
+            badge.className = 'reacao-badge';
+            badge.innerHTML = `${emoji} ${usuarios.length}`;
+            container.appendChild(badge);
         }
     }
-});
-
-function notificarDigitando() {
-    if (socket && socket.readyState === WebSocket.OPEN) {
-        socket.send(JSON.stringify({ tipoEvent: 'digitando', estado: true }));
-        clearTimeout(tempoDigitandoTimeout);
-        tempoDigitandoTimeout = setTimeout(() => {
-            socket.send(JSON.stringify({ tipoEvent: 'digitando', estado: false }));
-        }, 1500);
+    if (container.children.length === 0) {
+        container.remove();
     }
 }
 
@@ -193,17 +322,28 @@ function renderizarMensagem(pacote, eMinha) {
     const balao = document.createElement('div');
     balao.id = `msg-${pacote.id}`;
     balao.classList.add('mensagem', eMinha ? 'mensagem-minha' : 'mensagem-outros');
+    balao.onclick = (e) => abrirMenuReacoes(e, pacote.id);
 
     let conteudoHTML = '';
     if (!eMinha) {
         conteudoHTML += `<div style="font-size: 11px; color: #40b3e0; margin-bottom: 5px; font-weight: bold;">${pacote.nomeRemetente || 'Anônimo'}</div>`;
     }
 
+    if (pacote.citacao) {
+        conteudoHTML += `<div class="citacao-balao">
+                            <div class="citacao-balao-remetente">${pacote.citacao.remetente}</div>
+                            <div class="citacao-balao-texto">${pacote.citacao.texto}</div>
+                         </div>`;
+    }
+
+    let textoResumoParaCitacao = '';
     if (pacote.tipoMidia === 'texto') {
         conteudoHTML += `<span>${pacote.conteudo}</span>`;
+        textoResumoParaCitacao = pacote.conteudo;
     }
     else if (pacote.tipoMidia === 'imagem') {
         conteudoHTML += `<img src="${pacote.conteudo}" alt="Imagem">`;
+        textoResumoParaCitacao = '📷 [Imagem]';
     }
     else if (pacote.tipoMidia === 'audio') {
         conteudoHTML += `<audio controls preload="metadata" style="width: 100%; min-width: 200px;">
@@ -211,13 +351,31 @@ function renderizarMensagem(pacote, eMinha) {
                             <source src="${pacote.conteudo}" type="audio/mp4">
                             Seu navegador não suporta áudio.
                          </audio>`;
+        textoResumoParaCitacao = '🎤 [Áudio]';
     }
+
+    conteudoHTML += `<button type="button" onclick="event.stopPropagation(); prepararCitacao('${pacote.id}', '${eMinha ? 'Você' : (pacote.nomeRemetente || 'Anônimo')}', '${textoResumoParaCitacao.replace(/'/g, "\\'")}')" style="background:none; border:none; color:#7b8a97; font-size:11px; cursor:pointer; margin-top:4px; display:block;">↩️ Responder</button>`;
 
     const iconeBase = pacote.lida ? '✓✓' : '✓';
     const classeBase = pacote.lida ? 'status-check check-lido' : 'status-check check-enviado';
     const statusIcone = eMinha ? `<span class="${classeBase}" id="check-${pacote.id}">${iconeBase}</span>` : '';
     
     balao.innerHTML = conteudoHTML + statusIcone;
+
+    if (pacote.reacoes && Object.keys(pacote.reacoes).length > 0) {
+        const container = document.createElement('div');
+        container.className = 'container-reacoes';
+        for (const [emoji, usuarios] of Object.entries(pacote.reacoes)) {
+            if (usuarios.length > 0) {
+                const badge = document.createElement('span');
+                badge.className = 'reacao-badge';
+                badge.innerHTML = `${emoji} ${usuarios.length}`;
+                container.appendChild(badge);
+            }
+        }
+        balao.appendChild(container);
+    }
+
     area.appendChild(balao);
     area.scrollTop = area.scrollHeight;
 }
@@ -228,6 +386,11 @@ function removerMensagemLida(idMensagem) {
 }
 
 function enviarComTentativa(pacote) {
+    if (mensagemCitadaAtiva) {
+        pacote.citacao = mensagemCitadaAtiva;
+        cancelarCitacao();
+    }
+
     const pacoteStr = JSON.stringify({ tipoEvent: 'nova_mensagem', conteudo: pacote });
     if (socket && socket.readyState === WebSocket.OPEN) {
         socket.send(pacoteStr);
@@ -266,13 +429,20 @@ function pararMonitoramentoInatividade() {
     window.removeEventListener('touchstart', reiniciarCronometro);
 }
 
+function fecharMenusFlutuantes() {
+    document.getElementById('menuFoto').classList.add('oculto');
+    document.getElementById('menuEmoji').classList.add('oculto');
+}
+
 function toggleMenuFoto() {
-    document.getElementById('menuFoto').classList.toggle('oculto');
+    const menu = document.getElementById('menuFoto');
+    menu.classList.toggle('oculto');
     document.getElementById('menuEmoji').classList.add('oculto'); 
 }
 
 function toggleMenuEmoji() {
-    document.getElementById('menuEmoji').classList.toggle('oculto');
+    const menu = document.getElementById('menuEmoji');
+    menu.classList.toggle('oculto');
     document.getElementById('menuFoto').classList.add('oculto'); 
 }
 
@@ -313,7 +483,7 @@ function processarArquivoImagem(e) {
     };
     leitor.readAsDataURL(arquivo);
     this.value = "";
-    document.getElementById('menuFoto').classList.add('oculto');
+    fecharMenusFlutuantes();
 }
 
 document.getElementById('cameraInput').addEventListener('change', processarArquivoImagem);
