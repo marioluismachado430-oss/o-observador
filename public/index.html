@@ -52,35 +52,46 @@
         </header>
         <main id="areaMensagens" class="area-mensagens"></main>
         <div id="indicadorDigitando" class="indicador-digitando"></div>
-        <footer class="chat-input-area">
-            <input type="file" id="cameraInput" style="display: none;" accept="image/*" capture="environment">
-            <input type="file" id="galeriaInput" style="display: none;" accept="image/*">
-            
-            <div id="menuFoto" class="menu-flutuante oculto">
-                <button onclick="document.getElementById('cameraInput').click(); toggleMenuFoto();">📷 Câmera</button>
-                <button onclick="document.getElementById('galeriaInput').click(); toggleMenuFoto();">🖼️ Galeria</button>
+        
+        <footer class="chat-input-container">
+            <!-- PAINEL DE PRÉ-VISUALIZAÇÃO DE RESPOSTA/CITAÇÃO -->
+            <div id="painelCitacao" class="painel-citacao oculto">
+                <div class="citacao-conteudo">
+                    <span id="citacaoTextoRemetente" style="font-weight: bold; color: #40b3e0;"></span>
+                    <p id="citacaoTextoMensagem" style="margin: 2px 0 0 0; font-size: 13px; color: #ccc; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"></p>
+                </div>
+                <button type="button" class="btn-fechar-citacao" onclick="cancelarCitacao()">✕</button>
             </div>
 
-            <!-- TECLADO DE EMOJIS RÁPIDO -->
-            <div id="menuEmoji" class="menu-flutuante menu-emojis oculto">
-                <span onclick="addEmoji('😀')">😀</span>
-                <span onclick="addEmoji('😂')">😂</span>
-                <span onclick="addEmoji('😅')">😅</span>
-                <span onclick="addEmoji('🥰')">🥰</span>
-                <span onclick="addEmoji('😍')">😍</span>
-                <span onclick="addEmoji('👍')">👍</span>
-                <span onclick="addEmoji('👏')">👏</span>
-                <span onclick="addEmoji('🔥')">🔥</span>
-                <span onclick="addEmoji('👀')">👀</span>
-                <span onclick="addEmoji('✔️')">✔️</span>
-            </div>
+            <div class="chat-input-area">
+                <input type="file" id="cameraInput" style="display: none;" accept="image/*" capture="environment">
+                <input type="file" id="galeriaInput" style="display: none;" accept="image/*">
+                
+                <div id="menuFoto" class="menu-flutuante oculto">
+                    <button onclick="document.getElementById('cameraInput').click(); toggleMenuFoto();">📷 Câmera</button>
+                    <button onclick="document.getElementById('galeriaInput').click(); toggleMenuFoto();">🖼️ Galeria</button>
+                </div>
 
-            <button type="button" class="btn-acao" onclick="toggleMenuFoto()" title="Enviar Imagem">📷</button>
-            <button type="button" class="btn-acao" onclick="toggleMenuEmoji()" title="Emoticons">😀</button>
-            <button type="button" id="btnAudio" class="btn-acao" onclick="toggleGravacaoAudio()" title="Gravar Áudio">🎤</button>
-            
-            <input type="text" id="mensagemInput" placeholder="Mensagem..." oninput="notificarDigitando()">
-            <button type="button" class="btn-acao btn-enviar" onclick="enviarMensagemTexto()">➤</button>
+                <div id="menuEmoji" class="menu-flutuante menu-emojis oculto">
+                    <span onclick="addEmoji('😀')">😀</span>
+                    <span onclick="addEmoji('😂')">😂</span>
+                    <span onclick="addEmoji('😅')">😅</span>
+                    <span onclick="addEmoji('🥰')">🥰</span>
+                    <span onclick="addEmoji('😍')">😍</span>
+                    <span onclick="addEmoji('👍')">👍</span>
+                    <span onclick="addEmoji('👏')">👏</span>
+                    <span onclick="addEmoji('🔥')">🔥</span>
+                    <span onclick="addEmoji('👀')">👀</span>
+                    <span onclick="addEmoji('✔️')">✔️</span>
+                </div>
+
+                <button type="button" class="btn-acao" onclick="toggleMenuFoto()" title="Enviar Imagem">📷</button>
+                <button type="button" class="btn-acao" onclick="toggleMenuEmoji()" title="Emoticons">😀</button>
+                <button type="button" id="btnAudio" class="btn-acao" onclick="toggleGravacaoAudio()" title="Gravar Áudio">🎤</button>
+                
+                <input type="text" id="mensagemInput" placeholder="Mensagem..." oninput="notificarDigitando()">
+                <button type="button" class="btn-acao btn-enviar" onclick="enviarMensagemTexto()">➤</button>
+            </div>
         </footer>
     </div>
 
