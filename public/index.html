@@ -98,3 +98,23 @@
     <script src="script.js"></script>
 </body>
 </html>
+                    <span onclick="addEmoji('👍')">👍</span>
+                    <span onclick="addEmoji('👏')">👏</span>
+                    <span onclick="addEmoji('🔥')">🔥</span>
+                    <span onclick="addEmoji('👀')">👀</span>
+                    <span onclick="addEmoji('✔️')">✔️</span>
+                </div>
+
+                <button type="button" class="btn-acao" onclick="toggleMenuFoto()" title="Enviar Imagem">📷</button>
+                <button type="button" class="btn-acao" onclick="toggleMenuEmoji()" title="Emoticons">😀</button>
+                <button type="button" id="btnAudio" class="btn-acao" onclick="toggleGravacaoAudio()" title="Gravar Áudio">🎤</button>
+                
+                <input type="text" id="mensagemInput" placeholder="Mensagem..." oninput="notificarDigitando()">
+                <button type="button" class="btn-acao btn-enviar" onclick="enviarMensagemTexto()">➤</button>
+            </div>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
