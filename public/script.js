@@ -22,7 +22,6 @@ setInterval(() => {
     if (relogio) relogio.innerText = new Date().toLocaleTimeString('pt-BR');
 }, 1000);
 
-// --- WEB AUDIO API: SOM SUTIL DE NOTIFICAÇÃO ---
 function tocarSomNotificacao() {
     try {
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -42,11 +41,10 @@ function tocarSomNotificacao() {
         osc.start();
         osc.stop(audioCtx.currentTime + 0.3);
     } catch (e) {
-        console.log("Áudio bloqueado pelo navegador até haver interação.");
+        console.log("Áudio bloqueado pelo navegador.");
     }
 }
 
-// --- ALERTA VISUAL: PISCAR ABA DO NAVEGADOR ---
 document.addEventListener("visibilitychange", () => {
     if (document.visibilityState === 'visible') {
         pararAlertaVisual();
@@ -228,7 +226,6 @@ function processarMensagemSocket(resposta) {
     }
 }
 
-// --- CITAÇÃO (REPLY) ---
 function prepararCitacao(idMsg, nomeRemetente, textoResumo) {
     mensagemCitadaAtiva = { id: idMsg, remetente: nomeRemetente, texto: textoResumo };
     document.getElementById('citacaoTextoRemetente').innerText = `Respondendo a ${nomeRemetente}`;
@@ -242,7 +239,6 @@ function cancelarCitacao() {
     document.getElementById('painelCitacao').classList.add('oculto');
 }
 
-// --- REAÇÕES RÁPIDAS ---
 function abrirMenuReacoes(event, idMsg) {
     event.stopPropagation();
     fecharMenusFlutuantes();
@@ -365,7 +361,7 @@ function renderizarMensagem(pacote, eMinha) {
     if (pacote.reacoes && Object.keys(pacote.reacoes).length > 0) {
         const container = document.createElement('div');
         container.className = 'container-reacoes';
-        for (const [emoji, usuarios] of Object.entries(pacote.reacoes)) {
+        for (const [emoji, usuarios] of Object.entries(reacoes)) {
             if (usuarios.length > 0) {
                 const badge = document.createElement('span');
                 badge.className = 'reacao-badge';
@@ -472,14 +468,39 @@ document.getElementById('mensagemInput').addEventListener('keypress', function (
 function processarArquivoImagem(e) {
     const arquivo = e.target.files[0];
     if (!arquivo) return;
-    if (arquivo.size > 8 * 1024 * 1024) { alert("A imagem deve ter no máximo 8MB."); this.value = ""; return; }
+    if (arquivo.size > 25 * 1024 * 1024) { alert("A imagem deve ter no máximo 25MB."); this.value = ""; return; }
+
     const leitor = new FileReader();
     leitor.onload = function(evt) {
-        const pacote = { 
-            tipoMidia: 'imagem', 
-            conteudo: evt.target.result
+        const img = new Image();
+        img.onload = function() {
+            const canvas = document.createElement('canvas');
+            let largura = img.width;
+            let altura = img.height;
+            const maxDimen = 1280;
+
+            if (largura > altura && largura > maxDimen) {
+                altura = Math.round((altura * maxDimen) / largura);
+                largura = maxDimen;
+            } else if (altura > maxDimen) {
+                largura = Math.round((largura * maxDimen) / altura);
+                altura = maxDimen;
+            }
+
+            canvas.width = largura;
+            canvas.height = altura;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, largura, altura);
+
+            const imagemOtimizada = canvas.toDataURL('image/jpeg', 0.85);
+            
+            const pacote = { 
+                tipoMidia: 'imagem', 
+                conteudo: imagemOtimizada
+            };
+            enviarComTentativa(pacote);
         };
-        enviarComTentativa(pacote);
+        img.src = evt.target.result;
     };
     leitor.readAsDataURL(arquivo);
     this.value = "";
@@ -515,7 +536,7 @@ async function toggleGravacaoAudio() {
                 const blobAudio = new Blob(pedacosAudio, { type: mimeType });
                 
                 if (blobAudio.size === 0) { alert("Áudio vazio."); return; }
-                if (blobAudio.size > 8 * 1024 * 1024) { alert("Áudio muito longo."); return; }
+                if (blobAudio.size > 15 * 1024 * 1024) { alert("Áudio muito longo."); return; }
                 
                 const leitor = new FileReader();
                 leitor.onload = function(evt) {
