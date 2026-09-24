@@ -2,59 +2,60 @@ const express = require('express');
 const http = require('http');
 const WebSocket = require('ws');
 const path = require('path');
-const { createClient } = require('@supabase/supabase-js');
+const admin = require('firebase-admin');
 
-const SUPABASE_URL = process.env.SUPABASE_URL || 'SUA_URL_DO_SUPABASE';
-const SUPABASE_KEY = process.env.SUPABASE_ANON_KEY || 'SUA_CHAVE_ANON_DO_SUPABASE';
-const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+// Inicialização segura do Firebase Admin usando a variável de ambiente do Render
+try {
+    const serviceAccountJson = process.env.FIREBASE_SERVICE_ACCOUNT;
+    if (serviceAccountJson) {
+        const serviceAccount = JSON.parse(serviceAccountJson);
+        admin.initializeApp({
+            credential: admin.credential.cert(serviceAccount)
+        });
+        console.log("[O OBSERVADOR] Firebase conectado com sucesso.");
+    } else {
+        console.error("[O OBSERVADOR] ERRO: Variável FIREBASE_SERVICE_ACCOUNT não encontrada!");
+    }
+} catch (e) {
+    console.error("[O OBSERVADOR] Erro ao inicializar o Firebase:", e);
+}
+
+const db = admin.apps.length ? admin.firestore() : null;
 
 const app = express();
 const servidor = http.createServer(app);
 
 const wss = new WebSocket.Server({ 
     server: servidor,
-    maxPayload: 50 * 1024 * 1024 
+    maxPayload: 10 * 1024 * 1024 
 });
 
 app.use(express.static(path.join(__dirname, 'public')));
 
+// Credenciais de acesso individuais
 const USUARIOS_AUTORIZADOS = {
     "mario": { id: "user_mario", nome: "Mario Luis" },
     "gal": { id: "user_gal", nome: "Gal" },
     "amigos": { id: "user_amigos", nome: "Amigos" }
 };
 
-async function buscarHistoricoDoBanco() {
+// Função auxiliar para buscar histórico no Firestore
+async function carregarHistorico() {
+    if (!db) return [];
     try {
-        const { data, error } = await supabase
-            .from('mensagens')
-            .select('*')
-            .order('timestamp_criacao', { ascending: true });
-        
-        if (error) {
-            console.error("Erro ao buscar histórico do Supabase:", error);
-            return [];
-        }
-
-        return data.map(m => ({
-            id: m.id,
-            remetente: m.remetente,
-            nomeRemetente: m.nome_remetente,
-            tipoMidia: m.tipo_midia,
-            conteudo: m.conteudo,
-            citacao: m.citacao,
-            reacoes: m.reacoes || {},
-            lida: m.lida,
-            timestampCriacao: Number(m.timestamp_criacao),
-            timestampLeitura: m.timestamp_leitura ? Number(m.timestamp_leitura) : null
-        }));
-    } catch (e) {
-        console.error("Erro de conexão com Supabase:", e);
+        const snapshot = await db.collection('mensagens').orderBy('timestamp', 'asc').get();
+        let mensagens = [];
+        snapshot.forEach(doc => {
+            mensagens.push(doc.data());
+        });
+        return mensagens;
+    } catch (erro) {
+        console.error("Erro ao carregar histórico do Firestore:", erro);
         return [];
     }
 }
 
-wss.on('connection', async (ws) => {
+wss.on('connection', (ws) => {
     ws.isAlive = true;
     ws.usuarioAtual = null;
 
@@ -64,22 +65,24 @@ wss.on('connection', async (ws) => {
         try {
             const dados = JSON.parse(mensagem);
 
+            // VALIDAÇÃO DE LOGIN COM SENHA INDIVIDUAL
             if (dados.tipoEvent === 'login') {
                 const credencial = dados.senha ? dados.senha.toLowerCase().trim() : '';
                 if (USUARIOS_AUTORIZADOS[credencial]) {
                     ws.usuarioAtual = USUARIOS_AUTORIZADOS[credencial];
-                    const historicoAtual = await buscarHistoricoDoBanco();
+                    const historicoMensagens = await carregarHistorico();
                     
                     ws.send(JSON.stringify({
                         tipo: 'login_sucesso',
                         id: ws.usuarioAtual.id,
                         nome: ws.usuarioAtual.nome,
-                        conteudo: historicoAtual
+                        conteudo: historicoMensagens
                     }));
                 } else {
                     ws.send(JSON.stringify({ tipo: 'login_erro' }));
                 }
             }
+            // NOVA MENSAGEM
             else if (dados.tipoEvent === 'nova_mensagem') {
                 if (!ws.usuarioAtual) return;
 
@@ -89,25 +92,14 @@ wss.on('connection', async (ws) => {
                     nomeRemetente: ws.usuarioAtual.nome,
                     tipoMidia: dados.conteudo.tipoMidia,
                     conteudo: dados.conteudo.conteudo,
-                    citacao: dados.conteudo.citacao || null,
-                    reacoes: {},
                     lida: false,
-                    timestampCriacao: Date.now(),
-                    timestampLeitura: null
+                    timestamp: Date.now()
                 };
                 
-                await supabase.from('mensagens').insert([{
-                    id: novaMsg.id,
-                    remetente: novaMsg.remetente,
-                    nome_remetente: novaMsg.nomeRemetente,
-                    tipo_midia: novaMsg.tipoMidia,
-                    conteudo: novaMsg.conteudo,
-                    citacao: novaMsg.citacao,
-                    reacoes: novaMsg.reacoes,
-                    lida: novaMsg.lida,
-                    timestamp_criacao: novaMsg.timestampCriacao,
-                    timestamp_leitura: novaMsg.timestampLeitura
-                }]);
+                // Salva permanentemente no Firestore
+                if (db) {
+                    await db.collection('mensagens').doc(novaMsg.id).set(novaMsg);
+                }
 
                 wss.clients.forEach((cliente) => {
                     if (cliente.readyState === WebSocket.OPEN) {
@@ -118,50 +110,10 @@ wss.on('connection', async (ws) => {
                     }
                 });
             } 
-            else if (dados.tipoEvent === 'adicionar_reacao') {
-                if (!ws.usuarioAtual) return;
-                
-                const { data: msgList } = await supabase.from('mensagens').select('*').eq('id', dados.idMensagem);
-                if (msgList && msgList.length > 0) {
-                    const msgAlvo = msgList[0];
-                    let reacoes = msgAlvo.reacoes || {};
-                    const emoji = dados.emoji;
-
-                    if (!reacoes[emoji]) {
-                        reacoes[emoji] = [];
-                    }
-                    const index = reacoes[emoji].indexOf(ws.usuarioAtual.id);
-                    if (index > -1) {
-                        reacoes[emoji].splice(index, 1);
-                        if (reacoes[emoji].length === 0) delete reacoes[emoji];
-                    } else {
-                        reacoes[emoji].push(ws.usuarioAtual.id);
-                    }
-
-                    await supabase.from('mensagens').update({ reacoes: reacoes }).eq('id', dados.idMensagem);
-
-                    wss.clients.forEach((cliente) => {
-                        if (cliente.readyState === WebSocket.OPEN) {
-                            cliente.send(JSON.stringify({
-                                tipo: 'atualizar_reacoes',
-                                idMensagem: dados.idMensagem,
-                                reacoes: reacoes
-                            }));
-                        }
-                    });
-                }
-            }
+            // CONFIRMAR LEITURA
             else if (dados.tipoEvent === 'confirmar_leitura') {
-                const { data: msgList } = await supabase.from('mensagens').select('*').eq('id', dados.idMensagem);
-                if (msgList && msgList.length > 0) {
-                    const msgAlvo = msgList[0];
-                    if (!msgAlvo.lida) {
-                        const tempoLeitura = Date.now();
-                        await supabase.from('mensagens').update({ 
-                            lida: true, 
-                            timestamp_leitura: tempoLeitura 
-                        }).eq('id', dados.idMensagem);
-                    }
+                if (db) {
+                    await db.collection('mensagens').doc(dados.idMensagem).update({ lida: true });
                 }
 
                 wss.clients.forEach((cliente) => {
@@ -173,6 +125,7 @@ wss.on('connection', async (ws) => {
                     }
                 });
             }
+            // DIGITANDO
             else if (dados.tipoEvent === 'digitando') {
                 if (!ws.usuarioAtual) return;
                 wss.clients.forEach((cliente) => {
@@ -185,8 +138,17 @@ wss.on('connection', async (ws) => {
                     }
                 });
             }
+            // LIMPAR HISTÓRICO (Comando 000000)
             else if (dados.tipoEvent === 'limpar_historico') {
-                await supabase.from('mensagens').delete().neq('id', '');
+                if (db) {
+                    const snapshot = await db.collection('mensagens').get();
+                    const batch = db.batch();
+                    snapshot.docs.forEach((doc) => {
+                        batch.delete(doc.ref);
+                    });
+                    await batch.commit();
+                }
+
                 wss.clients.forEach((cliente) => {
                     if (cliente.readyState === WebSocket.OPEN) {
                         cliente.send(JSON.stringify({ tipo: 'historico_limpo' }));
@@ -209,26 +171,26 @@ const intervaloMonitor = setInterval(() => {
     });
 }, 25000);
 
-const UM_DIA_EM_MS = 24 * 60 * 60 * 1000;
+// Lixeiro inteligente (após 24h e apenas se lida)
+const UM_DIA = 24 * 60 * 60 * 1000;
 const intervaloLimpeza = setInterval(async () => {
+    if (!db) return;
     const agora = Date.now();
     try {
-        const { data: mensagens } = await supabase.from('mensagens').select('*');
-        if (!mensagens) return;
-
+        const snapshot = await db.collection('mensagens').get();
         let idsRemovidos = [];
-        mensagens.forEach(m => {
-            if (m.lida === true && m.timestamp_leitura) {
-                const tempoDecorrido = agora - Number(m.timestamp_leitura);
-                if (tempoDecorrido > UM_DIA_EM_MS) {
-                    idsRemovidos.push(m.id);
-                }
+        const batch = db.batch();
+
+        snapshot.forEach(doc => {
+            const m = doc.data();
+            if (agora - m.timestamp > UM_DIA && m.lida === true) {
+                idsRemovidos.push(m.id);
+                batch.delete(doc.ref);
             }
         });
 
         if (idsRemovidos.length > 0) {
-            await supabase.from('mensagens').delete().in('id', idsRemovidos);
-
+            await batch.commit();
             wss.clients.forEach(c => {
                 if (c.readyState === WebSocket.OPEN) {
                     c.send(JSON.stringify({
@@ -238,8 +200,8 @@ const intervaloLimpeza = setInterval(async () => {
                 }
             });
         }
-    } catch (e) {
-        console.error("Erro na limpeza automática do Supabase:", e);
+    } catch (err) {
+        console.error("Erro na limpeza automática:", err);
     }
 }, 60000);
 
